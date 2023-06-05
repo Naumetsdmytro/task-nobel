@@ -1,16 +1,21 @@
-require("dotenv").config(); // Load environment variables from .env file
-
 const express = require("express");
 const { google } = require("googleapis");
-const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  next();
+});
 
 // Load credentials from environment variables
-const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n");
-const spreadsheetId = process.env.SPREADSHEET_ID;
+const clientEmail =
+  "sheet-service-account@nobel-project.iam.gserviceaccount.com";
+const privateKey =
+  "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCZiJb/0sPng9Ay\nM4EqLl/5c3ThysCgAqcLq5h3fFVkgydONli1ExbLx6zWg2b7LkD/ymimKpJRPGJj\n31rZsq3V2QcqISY4MJ954DblFdXwwAOMpv0U5hXRVlsgS+xI4xI4LqeFmmoGGAx0\ngOxtgSyCMIY6o+loOsDstnl1UbOd9dVAxQNR3lgVvHC9umEiTkTTwotIL8Ux3xeC\nGYgpSmucQz4KiBF5lE77IUkxorXlSRJJTox3klG3FbmwZ+Q3VjcGXAHFndSXVubX\nkRah/dqmaR3YjKmDrgCduh+0RUeD+V52QVbWBcgxIOvSkKyd7t2392XrObCOT2ML\nkdsBSvKpAgMBAAECggEAARITw3rrxMyFgiQbzXh/UNT+RqjMSRFbqtgqewLR8Z58\ngq4cVj7o1MjyqphF+pBrAZ2etzHqzUg3g2zGTGhTj/8wbpnGk3O7WPU4TManNEOS\ngsOTVjb4hfotLn95CVUUBnJE1sip3psCUzmm7GiPL+U4umX0NbbbK4tmM2w7bWmL\nrE/+JxIJ6OUxaqTbOB9AI9UhjdyvB7krSmq4UfLlqAUOciq2voANdgpzCJjDZRrV\n2kbb8y8APSqudCQNUReE4hXiB3L2xUJHEov7da4UIBQMClyV+4CtkXlo0bES7MIg\nFsWCPc8bwGHd+Ry3hynCIKNM5+2KkWMZ6QURslCEEQKBgQDG5HthRjtKeG53tgmE\n8fQfPMBRdasFq5IBxCwuSJ94Ly/Llzz+fwOEtWSA7O9meQ6WhvBprdMolhizSVzc\nu5Y9mUJ+Z0WZXEz5ZotkMzHdwp9meg1iEBQ7cNTvaSxOCh1d7S6jMmIf439k4jTN\nxa0WpmjN9O79dvWfjwvpILJUXQKBgQDFngPpJvpzmnI1nskGNs+jBcWCpiGoVFV6\nziqOuDan2VnEq8gLBDPSn2plF3CncbOBTFULzAPTVAJHe3x9CiBWowHr728TVVcL\nyg83YivjCKm4QrKfWXZwgO8bgp1kANVdlQ/kwbFZCy8NZH0fVQP+3TiVCIbrtYFe\nlk2Gq0KyvQKBgCn4sWi3r29ptrYgfiXGAWROJ6+JC0wpBqjEwyYJQU3Vd1qZUc/K\n8e0hclIarfKL/V4an8VNX1AjTJcZFjWmiG/7VaLjHDbe2YeP8j5050MK/SRdAVH+\nXqakiury4NyfGc9ma/8YdMiR86JQciAyZPJwr5E27PAkGHVRdIv/0GIpAoGAZAmR\nwT1SG6NbnXk8GkE06znIulKPRz8p5njnYkguotmMb9rl8W23LjA1E+fBx4HvdMzH\nYKluZlRosvb4FfRCWpk6J82VVRwmbHllKowv20ZPZE+fTLtlEZ6zbCG6ux0Q5cbH\nvO2wcXsP3p+4F1xaIXKragZfBoNjchZ0OHAJ26ECgYB5/ITakvn3b8iLTu/vU47e\nv7gTOkrShZjmB0KUrJJkL0tArs1axACPqsI5g1A7poV49P93ReuklT5+b10qoNcg\nitfLsGfGTlLXCb9V19Bo54IpkS0TOmdCOcZNuBX5OWqLfVoNN5gM6STXiqKft2HE\nFCHsVEKJVwLK+r9wY5W77g==\n-----END PRIVATE KEY-----\n";
+const spreadsheetId = "12oLLufV9URey5NviLwjB6Rhy0qJTAMuHMnjaebJmmi4";
 
 // Create a new JWT client using the loaded credentials
 const auth = new google.auth.JWT({
