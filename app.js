@@ -1,7 +1,12 @@
 const express = require("express");
 const { google } = require("googleapis");
+const path = require("path");
 
 const app = express();
+
+// Set the static files directory
+const publicDir = path.join(__dirname, "public");
+app.use(express.static(publicDir));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -50,8 +55,6 @@ app.get("/getDate", (req, res) => {
 });
 
 app.use(express.json());
-// Define a route to handle setting data in a spreadsheet
-// Define a route to handle setting data in a spreadsheet
 app.post("/setData", express.json(), (req, res) => {
   const spreadsheetId = req.body.spreadsheetId;
   const data = req.body.data;
