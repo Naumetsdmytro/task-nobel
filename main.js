@@ -1,5 +1,3 @@
-// import { fetchDataSS } from "./fetchSpreadSheetData";
-
 // Elements
 const timerContainer = document.querySelector(".timer");
 const signInContainer = document.querySelector(".signIn");
@@ -70,6 +68,8 @@ function onFormSubmit(evt) {
 
   if (name === "" || email === "") return;
 
+  form.reset();
+
   fetch("http://localhost:3000/setData", {
     method: "POST",
     headers: {
@@ -82,13 +82,15 @@ function onFormSubmit(evt) {
   })
     .then((response) => {
       if (response.ok) {
-        form.reset();
+        window.location.href =
+          room === 1
+            ? "https://meet.google.com/qcj-vncv-fjk"
+            : "https://meet.google.com/gdn-xkoo-scs";
       }
     })
     .catch((error) => {
-      console.error("An error occurred:", error);
+      console.log("Something went wrong :( Please try again");
     });
-  //   window.open("", "_blank");no new tab
 }
 
 function getRandomNumber(min, max) {
