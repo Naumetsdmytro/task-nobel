@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page title</title>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="noEduquestContainer">
+            <h2 class="noEduquest">No upcoming Eduquest :(</h2>
+        </div>
+        <div class="signIn">
+            <div class="hello">Welcome to</div>
+            <div class="nobel">NOBEL EDUQUEST</div>
+            <div class="please" id="please">Please sign in to start</div>
+            <div id="output" class="error"></div>
+            <form class="form">
+                <div class="form__body">
+                    <div class="form__item">
+                        <label class="form__label" for="name">Please put your full name below (latin characters
+                            only)</label>
+                        <input class="form__input" id="name" type="text" maxLength="64" required placeholder="John Doe"
+                            name="name">
+                    </div>
+                    <div class="form__item">
+                        <label class="form__label" for="emailAddress">Please enter the email</label>
+                        <input class="form__input" id="emailAddress" type="email" maxLength="64" required
+                            placeholder="Email" pattern=".+@.+" name="email">
+                    </div>
+                </div>
+                <button class="form__btn" type="submit">Join</button>
+            </form>
+            <div class="loader" id="loader" style="display: none;"></div>
+        </div>
+        <div class="timer">
+            <div class="field">
+                <span class="value" data-days>00</span>
+                <span class="label">Days</span>
+            </div>
+            <div class="field">
+                <span class="value" data-hours>00</span>
+                <span class="label">Hours</span>
+            </div>
+            <div class="field">
+                <span class="value" data-minutes>00</span>
+                <span class="label">Minutes</span>
+            </div>
+            <div class="field">
+                <span class="value" data-seconds>00</span>
+                <span class="label">Seconds</span>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./main.js"></script>
+</body>
+
+</html>
