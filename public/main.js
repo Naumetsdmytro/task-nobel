@@ -12,7 +12,7 @@ let timerId = 0;
 let spreadSheetId = "";
 let roomNumber = 0;
 const fetchSpreadSheetData = async () => {
-  const response = await fetch("http://localhost:3000/getDate");
+  const response = await fetch("http://localhost:3000/getData");
   const { data } = await response.json();
 
   const currentDate = new Date();
@@ -65,31 +65,55 @@ function onFormSubmit(evt) {
   const name = form.elements.name.value;
   const email = form.elements.email.value;
   const room = getRandomNumber(1, roomNumber);
+  const sheetName = room === 1 ? "Main room 1" : "Main room 2";
 
   if (name === "" || email === "") return;
 
   form.reset();
+  window.location.href =
+    room === 1
+      ? "https://meet.google.com/qcj-vncv-fjk"
+      : "https://meet.google.com/gdn-xkoo-scs";
 
-  fetch("http://localhost:3000/setData", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      spreadsheetId: spreadSheetId,
-      data: [email, name, room],
-    }),
-  })
+  fetch(
+    `http://localhost:3000/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`
+  )
     .then((response) => {
-      if (response.ok) {
-        window.location.href =
-          room === 1
-            ? "https://meet.google.com/qcj-vncv-fjk"
-            : "https://meet.google.com/gdn-xkoo-scs";
-      }
+      return response.json();
+    })
+    .then(({ data }) => {
+      if (data.find((entEmail) => entEmail[0] === email)) return;
+
+      fetch("http://localhost:3000/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName: "Entered",
+          spreadsheetId: spreadSheetId,
+          data: [email, name, room],
+        }),
+      }).catch((error) => {
+        console.log(error.message);
+      });
+
+      fetch("http://localhost:3000/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName,
+          spreadsheetId: spreadSheetId,
+          data: [name],
+        }),
+      }).catch((error) => {
+        console.log(error.message);
+      });
     })
     .catch((error) => {
-      console.log("Something went wrong :( Please try again");
+      console.log(error.message);
     });
 }
 

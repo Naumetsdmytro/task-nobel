@@ -1,3 +1,4 @@
+const { query } = require("express");
 const express = require("express");
 const { google } = require("googleapis");
 const path = require("path");
@@ -30,7 +31,7 @@ const auth = new google.auth.JWT({
 });
 
 // Define a route to handle the /getDate request
-app.get("/getDate", (req, res) => {
+app.get("/getData", (req, res) => {
   const sheets = google.sheets({ version: "v4", auth });
   sheets.spreadsheets.values.get(
     {
@@ -54,10 +55,37 @@ app.get("/getDate", (req, res) => {
   );
 });
 
+app.get("/getEmailsFromEntered", (req, res) => {
+  const spreadsheetId = req.query.spreadsheetId;
+  if (!spreadsheetId) {
+    res.status(400).json({ error: "Missing spreadsheet ID" });
+    return;
+  }
+
+  const sheets = google.sheets({ version: "v4", auth });
+  sheets.spreadsheets.values.get(
+    {
+      spreadsheetId: spreadsheetId,
+      range: "Entered!A2:A",
+    },
+    (err, response) => {
+      if (err) {
+        console.error("Error:", err);
+        res.status(500).send("An error occurred");
+        return;
+      }
+      const rows = response.data.values;
+      res.json({ data: rows || [] });
+    }
+  );
+});
+
 app.use(express.json());
+
 app.post("/setData", express.json(), (req, res) => {
   const spreadsheetId = req.body.spreadsheetId;
   const data = req.body.data;
+  const sheetName = req.body.sheetName;
 
   // Check if required parameters are provided
   if (!spreadsheetId || !data) {
@@ -71,7 +99,7 @@ app.post("/setData", express.json(), (req, res) => {
   sheets.spreadsheets.values.get(
     {
       spreadsheetId: spreadsheetId,
-      range: "Entered",
+      range: sheetName,
       majorDimension: "ROWS",
     },
     (err, response) => {
@@ -86,7 +114,7 @@ app.post("/setData", express.json(), (req, res) => {
       sheets.spreadsheets.values.update(
         {
           spreadsheetId: spreadsheetId,
-          range: `Entered!A${lastRow}:C${lastRow}`, // Use the updated row number
+          range: `${sheetName}!A${lastRow}:C${lastRow}`, // Use the updated row number
           valueInputOption: "USER_ENTERED",
           resource: {
             values: [data],
