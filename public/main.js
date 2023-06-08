@@ -49,7 +49,7 @@ const fetchSpreadSheetData = async () => {
     timerContainer.style.display = "block";
     signInContainer.style.display = "none";
     noEduguestContainer.style.display = "none";
-    timerId = setInterval(countdownTimer, 1000, Date.parse(latestDate));
+    timerId = setInterval(countdownTimer, 1000, latestDate);
   }
 };
 
