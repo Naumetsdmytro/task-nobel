@@ -65,7 +65,7 @@ app.get("/getEmailsFromEntered", (req, res) => {
   sheets.spreadsheets.values.get(
     {
       spreadsheetId: spreadsheetId,
-      range: "Entered!A2:A",
+      range: "Entered!A2:C",
     },
     (err, response) => {
       if (err) {

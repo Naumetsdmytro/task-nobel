@@ -12,7 +12,7 @@ let timerId = 0;
 let spreadSheetId = "";
 let roomNumber = 0;
 const fetchSpreadSheetData = async () => {
-  const response = await fetch("http://localhost:3000/getData");
+  const response = await fetch("/getData");
   const { data } = await response.json();
 
   const currentDate = new Date();
@@ -64,27 +64,33 @@ function onFormSubmit(evt) {
   evt.preventDefault();
   const name = form.elements.name.value;
   const email = form.elements.email.value;
-  const room = getRandomNumber(1, roomNumber);
+  let room = getRandomNumber(1, roomNumber);
   const sheetName = room === 1 ? "Main room 1" : "Main room 2";
 
   if (name === "" || email === "") return;
 
   form.reset();
-  window.location.href =
-    room === 1
-      ? "https://meet.google.com/qcj-vncv-fjk"
-      : "https://meet.google.com/gdn-xkoo-scs";
 
-  fetch(
-    `http://localhost:3000/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`
-  )
+  fetch(`/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`)
     .then((response) => {
       return response.json();
     })
     .then(({ data }) => {
-      if (data.find((entEmail) => entEmail[0] === email)) return;
+      const findedStudent = data.find((entData) => entData[0] === email);
+      if (findedStudent) {
+        const link =
+          Number(findedStudent[2]) === 1
+            ? "https://meet.google.com/qcj-vncv-fjk"
+            : "https://meet.google.com/gdn-xkoo-scs";
+        window.location.href = link;
+        return;
+      }
+      window.location.href =
+        room === 1
+          ? "https://meet.google.com/qcj-vncv-fjk"
+          : "https://meet.google.com/gdn-xkoo-scs";
 
-      fetch("http://localhost:3000/setData", {
+      fetch("/setData", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +104,7 @@ function onFormSubmit(evt) {
         console.log(error.message);
       });
 
-      fetch("http://localhost:3000/setData", {
+      fetch("/setData", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
