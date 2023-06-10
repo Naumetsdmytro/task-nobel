@@ -46,6 +46,7 @@ const fetchSpreadSheetData = async () => {
     signInContainer.style.display = "block";
     noEduguestContainer.style.display = "none";
   } else if (currentDate.getTime() < latestDate.getTime()) {
+    countdownTimer(latestDate);
     timerContainer.style.display = "block";
     signInContainer.style.display = "none";
     noEduguestContainer.style.display = "none";
