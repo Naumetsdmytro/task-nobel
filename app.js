@@ -35,7 +35,9 @@ app.get("/getData", (req, res) => {
   sheets.spreadsheets.values.get(
     {
       spreadsheetId: spreadsheetId,
-      range: "Eduquests!A2:C",
+      range: "Eduquests!A:C",
+      majorDimension: "ROWS",
+      valueRenderOption: "UNFORMATTED_VALUE",
     },
     (err, response) => {
       if (err) {
@@ -45,8 +47,9 @@ app.get("/getData", (req, res) => {
       }
 
       const rows = response.data.values;
-      if (rows.length) {
-        res.json({ data: rows });
+      if (rows && rows.length) {
+        const lastRow = rows[rows.length - 1];
+        res.json({ data: lastRow });
       } else {
         res.json({ message: "No data found." });
       }

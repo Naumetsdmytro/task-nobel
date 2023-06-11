@@ -2,6 +2,7 @@
 const timerContainer = document.querySelector(".timer");
 const signInContainer = document.querySelector(".signIn");
 const noEduguestContainer = document.querySelector(".noEduquestContainer");
+const formButton = document.querySelector(".form__btn");
 
 const timerDays = document.querySelector("span[data-days]");
 const timerHours = document.querySelector("span[data-hours]");
@@ -15,42 +16,32 @@ const fetchSpreadSheetData = async () => {
   const response = await fetch("/getData");
   const { data } = await response.json();
 
+  console.log(data);
+
+  spreadSheetId = data[1];
+  roomNumber = data[2];
+
   const currentDate = new Date();
-
-  const latestDate = data.reduce(
-    (latest, [dateString, spreadSheet, roomcount]) => {
-      const date = new Date(dateString);
-      if (date > latest) {
-        spreadSheetId = spreadSheet;
-        roomNumber = roomcount;
-        return date;
-      }
-      return latest;
-    },
-    new Date(0)
-  );
-
-  const updatedLatestDate = new Date(
-    latestDate.getTime() + 1.5 * 60 * 60 * 1000
-  ); // add 1.5 hours
+  const eqDate = new Date(data[0]);
+  const updatedLatestDate = new Date(eqDate.getTime() + 1.5 * 60 * 60 * 1000); // add 1.5 hours
 
   if (currentDate.getTime() > updatedLatestDate.getTime()) {
     timerContainer.style.display = "none";
     signInContainer.style.display = "none";
     noEduguestContainer.style.display = "block";
   } else if (
-    currentDate.getTime() > latestDate &&
+    currentDate.getTime() > eqDate &&
     currentDate.getTime() < updatedLatestDate.getTime()
   ) {
     timerContainer.style.display = "none";
     signInContainer.style.display = "block";
     noEduguestContainer.style.display = "none";
-  } else if (currentDate.getTime() < latestDate.getTime()) {
-    countdownTimer(latestDate);
+  } else if (currentDate.getTime() < eqDate.getTime()) {
+    countdownTimer(eqDate);
     timerContainer.style.display = "block";
     signInContainer.style.display = "none";
     noEduguestContainer.style.display = "none";
-    timerId = setInterval(countdownTimer, 1000, latestDate);
+    timerId = setInterval(countdownTimer, 1000, eqDate);
   }
 };
 
@@ -65,11 +56,12 @@ function onFormSubmit(evt) {
   evt.preventDefault();
   const name = form.elements.name.value;
   const email = form.elements.email.value;
+
   let room = getRandomNumber(1, roomNumber);
   const sheetName = room === 1 ? "Main room 1" : "Main room 2";
 
   if (name === "" || email === "") return;
-
+  formButton.disabled = true;
   form.reset();
 
   fetch(`/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`)
@@ -84,13 +76,14 @@ function onFormSubmit(evt) {
             ? "https://meet.google.com/qcj-vncv-fjk"
             : "https://meet.google.com/gdn-xkoo-scs";
         window.location.href = link;
+        formButton.disabled = false;
         return;
       }
       window.location.href =
         room === 1
           ? "https://meet.google.com/qcj-vncv-fjk"
           : "https://meet.google.com/gdn-xkoo-scs";
-
+      formButton.disabled = false;
       fetch("/setData", {
         method: "POST",
         headers: {
