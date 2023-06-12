@@ -3,6 +3,7 @@ const timerContainer = document.querySelector(".timer");
 const signInContainer = document.querySelector(".signIn");
 const noEduguestContainer = document.querySelector(".noEduquestContainer");
 const formButton = document.querySelector(".form__btn");
+const spinner = document.querySelector(".spinner");
 
 const timerDays = document.querySelector("span[data-days]");
 const timerHours = document.querySelector("span[data-hours]");
@@ -12,14 +13,15 @@ const timerSeconds = document.querySelector("span[data-seconds]");
 let timerId = 0;
 let spreadSheetId = "";
 let roomNumber = 0;
+let links = [];
+
 const fetchSpreadSheetData = async () => {
   const response = await fetch("/getData");
   const { data } = await response.json();
 
-  console.log(data);
-
   spreadSheetId = data[1];
   roomNumber = data[2];
+  links = data[3].split(",");
 
   const currentDate = new Date();
   const eqDate = new Date(data[0]);
@@ -62,7 +64,9 @@ function onFormSubmit(evt) {
 
   if (name === "" || email === "") return;
   formButton.disabled = true;
-  form.reset();
+
+  formButton.style.display = "none";
+  spinner.style.display = "inline-block";
 
   fetch(`/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`)
     .then((response) => {
@@ -71,19 +75,15 @@ function onFormSubmit(evt) {
     .then(({ data }) => {
       const findedStudent = data.find((entData) => entData[0] === email);
       if (findedStudent) {
-        const link =
-          Number(findedStudent[2]) === 1
-            ? "https://meet.google.com/qcj-vncv-fjk"
-            : "https://meet.google.com/gdn-xkoo-scs";
-        window.location.href = link;
-        formButton.disabled = false;
+        const link = links.filter(
+          (link, index) => Number(findedStudent[2]) === index + 1
+        );
+        window.location.href = link[0];
         return;
       }
-      window.location.href =
-        room === 1
-          ? "https://meet.google.com/qcj-vncv-fjk"
-          : "https://meet.google.com/gdn-xkoo-scs";
-      formButton.disabled = false;
+      const link = links.filter((link, index) => room === index + 1);
+      window.location.href = link[0];
+      form.reset();
       fetch("/setData", {
         method: "POST",
         headers: {
@@ -113,7 +113,12 @@ function onFormSubmit(evt) {
       });
     })
     .catch((error) => {
-      console.log(error.message);
+      console.log("Kapec");
+    })
+    .finally(() => {
+      formButton.style.display = "inline-flex";
+      spinner.style.display = "none";
+      formButton.disabled = false;
     });
 }
 

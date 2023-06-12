@@ -16,15 +16,14 @@
         <div class="signIn">
             <div class="hello">Welcome to</div>
             <div class="nobel">NOBEL EDUQUEST</div>
-            <div class="please" id="please">Please sign in to start</div>
             <div id="output" class="error"></div>
             <form class="form">
                 <div class="form__body">
                     <div class="form__item">
                         <label class="form__label" for="name">Please put your full name below (latin characters
                             only)</label>
-                        <input class="form__input" id="name" type="text" maxLength="64" required placeholder="John Doe"
-                            name="name">
+                        <input class="form__input" id="name" type="text" maxLength="64" pattern="^[a-zA-Z ]+$"
+                            title="Please, enter only latin characters" required placeholder="John Doe" name="name">
                     </div>
                     <div class="form__item">
                         <label class="form__label" for="emailAddress">Please enter the email</label>
@@ -33,6 +32,7 @@
                     </div>
                 </div>
                 <button class="form__btn" type="submit">Join</button>
+                <span id="spinner" class="spinner"></span>
             </form>
             <div class="loader" id="loader" style="display: none;"></div>
         </div>

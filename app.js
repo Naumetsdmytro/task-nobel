@@ -35,7 +35,7 @@ app.get("/getData", (req, res) => {
   sheets.spreadsheets.values.get(
     {
       spreadsheetId: spreadsheetId,
-      range: "Eduquests!A:C",
+      range: "Eduquests!A:D",
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
     },
