@@ -26,7 +26,7 @@ const fetchSpreadSheetData = async () => {
 
   const currentDate = new Date();
   const eqDate = new Date(data[0]);
-  const updatedLatestDate = new Date(eqDate.getTime() + 1.5 * 60 * 60 * 1000); // add 1.5 hours
+  const updatedLatestDate = new Date(eqDate.getTime() + 40 * 60 * 1000); // add 40 minutes
 
   if (currentDate.getTime() > updatedLatestDate.getTime()) {
     timerContainer.style.display = "none";
