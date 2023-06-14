@@ -1,7 +1,7 @@
 // Elements
-const timerContainer = document.querySelector(".timer");
+const timerContainer = document.querySelector(".countdown");
 const signInContainer = document.querySelector(".signIn");
-const noEduguestContainer = document.querySelector(".noEduquestContainer");
+const noEduguest = document.querySelector(".no-eduquest");
 const formButton = document.querySelector(".form__btn");
 const spinner = document.querySelector(".spinner");
 
@@ -21,6 +21,7 @@ const fetchSpreadSheetData = async () => {
 
   spreadSheetId = data[1];
   roomNumber = data[2];
+  console.log(data[3]);
   links = data[3].split(",");
 
   const currentDate = new Date();
@@ -30,19 +31,19 @@ const fetchSpreadSheetData = async () => {
   if (currentDate.getTime() > updatedLatestDate.getTime()) {
     timerContainer.style.display = "none";
     signInContainer.style.display = "none";
-    noEduguestContainer.style.display = "block";
+    noEduguest.style.display = "block";
   } else if (
     currentDate.getTime() > eqDate &&
     currentDate.getTime() < updatedLatestDate.getTime()
   ) {
     timerContainer.style.display = "none";
     signInContainer.style.display = "block";
-    noEduguestContainer.style.display = "none";
+    noEduguest.style.display = "none";
   } else if (currentDate.getTime() < eqDate.getTime()) {
     countdownTimer(eqDate);
     timerContainer.style.display = "block";
     signInContainer.style.display = "none";
-    noEduguestContainer.style.display = "none";
+    noEduguest.style.display = "none";
     timerId = setInterval(countdownTimer, 1000, eqDate);
   }
 };
