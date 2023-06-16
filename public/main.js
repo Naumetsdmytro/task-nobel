@@ -21,7 +21,6 @@ const fetchSpreadSheetData = async () => {
 
   spreadSheetId = data[1];
   roomNumber = data[2];
-  console.log(data[3]);
   links = data[3].split(",");
 
   const currentDate = new Date();
