@@ -1,10 +1,11 @@
 const { query } = require("express");
+const Queue = require("bull");
 const express = require("express");
 const { google } = require("googleapis");
 const path = require("path");
 
 const app = express();
-
+const requestQueue = new Queue("postRequestQueue");
 // Set the static files directory
 const publicDir = path.join(__dirname, "public");
 app.use(express.static(publicDir));
@@ -15,6 +16,9 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   next();
 });
+
+// Cached Data "/getData"
+let cachedData = null;
 
 // Load credentials from environment variables
 const clientEmail = "eduquest-app-v1@appspot.gserviceaccount.com";
@@ -30,6 +34,13 @@ const auth = new google.auth.JWT({
 
 // Define a route to handle the /getDate request
 app.get("/getData", (req, res) => {
+  if (cachedData) {
+    res.json({ data: cachedData });
+    console.log("second");
+    return;
+  }
+  console.log("first");
+
   const sheets = google.sheets({ version: "v4", auth });
   sheets.spreadsheets.values.get(
     {
@@ -48,6 +59,7 @@ app.get("/getData", (req, res) => {
       const rows = response.data.values;
       if (rows && rows.length) {
         const lastRow = rows[rows.length - 1];
+        cachedData = lastRow; // Cache the retrieved data
         res.json({ data: lastRow });
       } else {
         res.json({ message: "No data found." });
@@ -83,7 +95,7 @@ app.get("/getEmailsFromEntered", (req, res) => {
 
 app.use(express.json());
 
-app.post("/setData", express.json(), (req, res) => {
+app.post("/setData", async (req, res) => {
   const spreadsheetId = req.body.spreadsheetId;
   const data = req.body.data;
   const sheetName = req.body.sheetName;
@@ -94,46 +106,45 @@ app.post("/setData", express.json(), (req, res) => {
     return;
   }
 
-  const sheets = google.sheets({ version: "v4", auth });
+  // Add the incoming request to the queue
+  await requestQueue.add({ spreadsheetId, data, sheetName });
 
-  // Retrieve the last row number from the spreadsheet
-  sheets.spreadsheets.values.get(
-    {
-      spreadsheetId: spreadsheetId,
-      range: sheetName,
-      majorDimension: "ROWS",
-    },
-    (err, response) => {
-      if (err) {
-        console.error("Error:", err);
-        res.status(500).json({ error: "An error occurred" });
-        return;
-      }
-      const rows = response.data.values;
-      const lastRow = rows ? rows.length + 1 : 1; // Calculate the last row number + 1
-      // Set the data in the last row + 1
-      sheets.spreadsheets.values.update(
-        {
-          spreadsheetId: spreadsheetId,
-          range: `${sheetName}!A${lastRow}:C${lastRow}`, // Use the updated row number
-          valueInputOption: "USER_ENTERED",
-          resource: {
-            values: [data],
-          },
-        },
-        (err, response) => {
-          if (err) {
-            console.error("Error:", err);
-            res.status(500).json({ error: "An error occurred" });
-            return;
-          }
-          res.json({ message: "Data set successfully" });
-        }
-      );
-    }
-  );
+  // Send a response to acknowledge receipt of the request
+  res.sendStatus(200);
 });
 
+// Process the requests from the queue
+requestQueue.process(async (job) => {
+  const { spreadsheetId, data, sheetName } = job.data;
+
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+
+    // Retrieve the last row number from the spreadsheet
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: sheetName,
+      majorDimension: "ROWS",
+    });
+
+    const rows = response.data.values;
+    const lastRow = rows ? rows.length + 1 : 1; // Calculate the last row number + 1
+
+    // Set the data in the last row + 1
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${sheetName}!A${lastRow}:C${lastRow}`, // Use the updated row number
+      valueInputOption: "USER_ENTERED",
+      resource: {
+        values: [data],
+      },
+    });
+
+    console.log("Data set successfully:", data);
+  } catch (error) {
+    console.error("Error processing request:", error);
+  }
+});
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
