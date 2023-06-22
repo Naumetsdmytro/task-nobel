@@ -23,7 +23,10 @@ const fetchSpreadSheetData = async () => {
   roomNumber = data[2];
   links = data[3].split(",");
 
-  const currentDate = new Date();
+  const responseDate = await fetch("/currentDateTime");
+  const { currentDateTime } = await responseDate.json();
+  const currentDate = new Date(currentDateTime);
+
   const eqDate = new Date(data[0]);
   const updatedLatestDate = new Date(eqDate.getTime() + 40 * 60 * 1000); // add 40 minutes
 

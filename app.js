@@ -33,6 +33,14 @@ const auth = new google.auth.JWT({
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
+// Get Date
+app.get("/currentDateTime", (req, res) => {
+  const currentDate = new Date(); // Get the current date and time on the server
+
+  // Send the current date and time as the response
+  res.json({ currentDateTime: currentDate });
+});
+
 // Define a route to handle the /getDate request
 app.get("/getData", (req, res) => {
   if (cachedData) {
@@ -92,58 +100,6 @@ app.get("/getEmailsFromEntered", (req, res) => {
     }
   );
 });
-
-// app.post("/setData", async (req, res) => {
-//   const spreadsheetId = req.body.spreadsheetId;
-//   const data = req.body.data;
-//   const sheetName = req.body.sheetName;
-
-//   // Check if required parameters are provided
-//   if (!spreadsheetId || !data) {
-//     res.status(400).json({ error: "Missing spreadsheet ID or data" });
-//     return;
-//   }
-
-//   // Find the spreadsheet object in the array
-//   const spreadsheetObj = dataArray.find(
-//     (obj) => obj.spreadsheetId === spreadsheetId
-//   );
-
-//   // If the spreadsheet object exists, find the sheet object
-//   if (spreadsheetObj) {
-//     const sheetObj = spreadsheetObj.sheets.find(
-//       (obj) => obj.sheetName === sheetName
-//     );
-
-//     // If the sheet object exists, increment the count by 1
-//     if (sheetObj) {
-//       sheetObj.count++;
-//     } else {
-//       // If the sheet object doesn't exist, create a new one with count = 1
-//       spreadsheetObj.sheets.push({ sheetName, count: 2 });
-//     }
-//   } else {
-//     // If the spreadsheet object doesn't exist, create a new one with count = 1
-//     const newSpreadsheetObj = {
-//       spreadsheetId,
-//       sheets: [{ sheetName, count: 2 }],
-//     };
-//     dataArray.push(newSpreadsheetObj);
-//   }
-
-//   await lock.acquire();
-
-//   // Add the request to the queue
-//   requestQueue.push({ spreadsheetId, data, sheetName });
-
-//   lock.release();
-
-//   // Send a response to acknowledge receipt of the request
-//   res.sendStatus(200);
-//   if (!isProcessingQueue) {
-//     processQueue();
-//   }
-// });
 
 app.use(express.json());
 // Define the file path for storing the array of objects
@@ -221,16 +177,17 @@ async function processQueue() {
         dataArray.push(spreadsheetObj);
       }
 
-      const sheetObj = spreadsheetObj.sheets.find(
+      let sheetObj = spreadsheetObj.sheets.find(
         (obj) => obj.sheetName === sheetName
       );
 
       // If the sheet object doesn't exist, create a new one with count = 1
       if (!sheetObj) {
         spreadsheetObj.sheets.push({ sheetName, count: 3 });
+        sheetObj = { sheetName, count: 2 };
       }
 
-      const lastRow = sheetObj ? sheetObj.count : 2;
+      const lastRow = sheetObj.count;
 
       // Set the data in the appropriate row
       await sheets.spreadsheets.values.update({
@@ -243,14 +200,12 @@ async function processQueue() {
       });
 
       // Increment the count
-      if (sheetObj) {
-        sheetObj.count++;
-      }
+      sheetObj.count++;
     } catch (error) {
       console.error("Error processing request:", error);
     }
   }
-
+  console.log(JSON.stringify(dataArray));
   isProcessingQueue = false; // Reset the processing flag
 }
 
