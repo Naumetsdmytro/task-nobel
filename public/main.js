@@ -3,6 +3,7 @@ const timerContainer = document.querySelector(".countdown");
 const signInContainer = document.querySelector(".signIn");
 const noEduguest = document.querySelector(".no-eduquest");
 const formButton = document.querySelector(".form__btn");
+const nameInput = document.querySelector(".form__input");
 const spinner = document.querySelector(".spinner");
 
 const timerDays = document.querySelector("span[data-days]");
@@ -18,6 +19,9 @@ let links = [];
 const fetchSpreadSheetData = async () => {
   const response = await fetch("/getData");
   const { data } = await response.json();
+
+  //bojans@nobelcoaching.com
+  // Zapier
 
   spreadSheetId = data[1];
   roomNumber = data[2];
@@ -59,14 +63,17 @@ form.addEventListener("submit", onFormSubmit);
 
 function onFormSubmit(evt) {
   evt.preventDefault();
+
   const name = form.elements.name.value;
+  const processName = name.split(" ").length === 2 ? name : "";
   const email = form.elements.email.value;
 
   let room = getRandomNumber(1, roomNumber);
   const sheetName = room === 1 ? "Main room 1" : "Main room 2";
 
-  if (name === "" || email === "") return;
+  if (processName === "" || email === "") return;
   formButton.disabled = true;
+  console.log("all bad");
 
   formButton.style.display = "none";
   spinner.style.display = "inline-block";
@@ -95,7 +102,7 @@ function onFormSubmit(evt) {
         body: JSON.stringify({
           sheetName: "Entered",
           spreadsheetId: spreadSheetId,
-          data: [email, name, room],
+          data: [email, processName, room],
         }),
       }).catch((error) => {
         console.log(error.message);
@@ -109,14 +116,14 @@ function onFormSubmit(evt) {
         body: JSON.stringify({
           sheetName,
           spreadsheetId: spreadSheetId,
-          data: [name],
+          data: [processName],
         }),
       }).catch((error) => {
         console.log(error.message);
       });
     })
     .catch((error) => {
-      console.log("Kapec");
+      console.log(error.message);
     })
     .finally(() => {
       formButton.style.display = "inline-flex";

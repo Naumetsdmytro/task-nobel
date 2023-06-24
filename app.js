@@ -17,9 +17,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Cached Data "/getData"
-let cachedData = null;
-
 // Load credentials from environment variables
 const clientEmail = "eduquest-app-v1@appspot.gserviceaccount.com";
 const privateKey =
@@ -31,6 +28,38 @@ const auth = new google.auth.JWT({
   email: clientEmail,
   key: privateKey,
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
+
+// Cached Data "/getData"
+let cachedData = null;
+
+// Load existing data from the file or initialize an empty array
+let dataArray = [];
+const requestQueue = [];
+let isProcessingQueue = false;
+
+// Endpoints for Vlad to quickly restart server
+app.get("/kapec", (req, res) => {
+  cachedData = null;
+  // Send the current date and time as the response
+  res.send(
+    "Vlad, Dima 1 made sure that you were comfortable! The cached data was cleared, you can continue to live peacefully :)"
+  );
+});
+
+app.get("/kapecjson", (req, res) => {
+  dataArray = [];
+
+  fs.writeFile(dataFilePath, JSON.stringify(dataArray), "utf8", (error) => {
+    if (error) {
+      console.error("Error saving data:", error);
+      res.status(500).send("Error clearing data");
+    } else {
+      res.send(
+        `Vlad, Dima 1 made sure that you were comfortable! File data.json was cleared and variable dataArray too: [ ], you can continue to live peacefully :)`
+      );
+    }
+  });
 });
 
 // Get Date
@@ -104,11 +133,6 @@ app.get("/getEmailsFromEntered", (req, res) => {
 app.use(express.json());
 // Define the file path for storing the array of objects
 const dataFilePath = path.join(__dirname, "data.json");
-
-// Load existing data from the file or initialize an empty array
-let dataArray = [];
-const requestQueue = [];
-let isProcessingQueue = false;
 
 try {
   const dataFile = fs.readFileSync(dataFilePath, "utf8");

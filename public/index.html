@@ -45,8 +45,8 @@
                                         characters
                                         only)</label>
                                     <input class="form__input" id="name" type="text" maxLength="64"
-                                        pattern="^[a-zA-Z ]+$" title="Please, enter only latin characters" required
-                                        name="name">
+                                        pattern="^(?=.*\b\w+\b\s+\b\w+\b)[a-zA-Z\s]+$"
+                                        title="Please enter your first name and last name" required name="name">
                                 </div>
                                 <div class="form__item">
                                     <label class="form__label" for="emailAddress">Please enter the email</label>
