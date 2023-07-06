@@ -5,6 +5,7 @@ const noEduguest = document.querySelector(".no-eduquest");
 const formButton = document.querySelector(".form__btn");
 const nameInput = document.querySelector(".form__input");
 const spinner = document.querySelector(".spinner");
+const signInButton = document.getElementById("googleSignInButton");
 
 const timerDays = document.querySelector("span[data-days]");
 const timerHours = document.querySelector("span[data-hours]");
@@ -17,11 +18,10 @@ let roomNumber = 0;
 let links = [];
 
 const fetchSpreadSheetData = async () => {
+  signInButton.style.display = "none";
+
   const response = await fetch("/getData");
   const { data } = await response.json();
-
-  //bojans@nobelcoaching.com
-  // Zapier
 
   spreadSheetId = data[1];
   roomNumber = data[2];
@@ -32,7 +32,7 @@ const fetchSpreadSheetData = async () => {
   const currentDate = new Date(currentDateTime);
 
   const eqDate = new Date(data[0]);
-  const updatedLatestDate = new Date(eqDate.getTime() + 40 * 60 * 1000); // add 40 minutes
+  const updatedLatestDate = new Date(eqDate.getTime() + 90 * 60 * 1000); // add 40 minutes
 
   if (currentDate.getTime() > updatedLatestDate.getTime()) {
     timerContainer.style.display = "none";
@@ -54,7 +54,7 @@ const fetchSpreadSheetData = async () => {
   }
 };
 
-fetchSpreadSheetData();
+// fetchSpreadSheetData();
 
 // Form submit
 const form = document.querySelector(".form");
@@ -73,21 +73,25 @@ function onFormSubmit(evt) {
 
   if (processName === "" || email === "") return;
   formButton.disabled = true;
-  console.log("all bad");
 
   formButton.style.display = "none";
   spinner.style.display = "inline-block";
 
-  fetch(`/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`)
+  fetch(`/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      data: [email, processName, room],
+    }),
+  })
     .then((response) => {
       return response.json();
     })
     .then(({ data }) => {
-      const findedStudent = data.find((entData) => entData[0] === email);
-      if (findedStudent) {
-        const link = links.filter(
-          (link, index) => Number(findedStudent[2]) === index + 1
-        );
+      if (data) {
+        const link = links.filter((link, index) => Number(data) === index + 1);
         window.location.href = link[0];
         return;
       }
@@ -135,6 +139,25 @@ function onFormSubmit(evt) {
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+function handleSignIn() {
+  fetch("/signin/google")
+    .then((response) => response.json())
+    .then((data) => {
+      signInButton.disabled = true;
+      // Handle the response data (Google name)
+      const googleName = data.name;
+      console.log("Google Name:", googleName);
+      fetchSpreadSheetData();
+    })
+    .catch((error) => {
+      // Handle any errors that occurred during the request
+      console.error("Error:", error);
+    });
+}
+
+// Add a click event listener to the button
+signInButton.addEventListener("click", handleSignIn);
 
 // Countdown
 function addLeadingZero(value) {
