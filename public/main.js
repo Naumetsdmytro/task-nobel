@@ -5,7 +5,7 @@ const noEduguest = document.querySelector(".no-eduquest");
 const formButton = document.querySelector(".form__btn");
 const nameInput = document.querySelector(".form__input");
 const spinner = document.querySelector(".spinner");
-const signInButton = document.getElementById("googleSignInButton");
+const signInButton = document.querySelector(".signIn-google");
 
 const timerDays = document.querySelector("span[data-days]");
 const timerHours = document.querySelector("span[data-hours]");
@@ -16,6 +16,7 @@ let timerId = 0;
 let spreadSheetId = "";
 let roomNumber = 0;
 let links = [];
+let googleName = "";
 
 const fetchSpreadSheetData = async () => {
   signInButton.style.display = "none";
@@ -53,8 +54,6 @@ const fetchSpreadSheetData = async () => {
     timerId = setInterval(countdownTimer, 1000, eqDate);
   }
 };
-
-// fetchSpreadSheetData();
 
 // Form submit
 const form = document.querySelector(".form");
@@ -120,7 +119,7 @@ function onFormSubmit(evt) {
         body: JSON.stringify({
           sheetName,
           spreadsheetId: spreadSheetId,
-          data: [processName],
+          data: [processName, googleName],
         }),
       }).catch((error) => {
         console.log(error.message);
@@ -140,24 +139,23 @@ function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function handleSignIn() {
-  fetch("/signin/google")
-    .then((response) => response.json())
-    .then((data) => {
-      signInButton.disabled = true;
-      // Handle the response data (Google name)
-      const googleName = data.name;
-      console.log("Google Name:", googleName);
-      fetchSpreadSheetData();
-    })
-    .catch((error) => {
-      // Handle any errors that occurred during the request
-      console.error("Error:", error);
-    });
+signInButton.addEventListener("click", handleGoogleSignIn);
+
+function handleGoogleSignIn() {
+  const authUrl = "/signin/google";
+
+  window.location.href = authUrl;
 }
 
-// Add a click event listener to the button
-signInButton.addEventListener("click", handleSignIn);
+// Check if the URL contains the query parameter indicating successful sign-in
+const urlParams = new URLSearchParams(window.location.search);
+const signInSuccess = urlParams.get("signInSuccess");
+
+if (signInSuccess === "true") {
+  // Call the function to fetch spreadsheet data
+  googleName = urlParams.get("googleName");
+  fetchSpreadSheetData();
+}
 
 // Countdown
 function addLeadingZero(value) {

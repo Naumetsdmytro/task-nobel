@@ -1,18 +1,16 @@
-const { query } = require("express");
 const express = require("express");
 const { Mutex } = require("async-mutex");
 const { google } = require("googleapis");
 const path = require("path");
-const lock = new Mutex(); // Mutex lock
+const lock = new Mutex();
 const app = express();
 const bodyParser = require("body-parser");
-const { OAuth2Client } = require("google-auth-library");
 
 // Set the static files directory
 const publicDir = path.join(__dirname, "public");
 app.use(express.static(publicDir));
 
-app.use((req, res, next) => {
+app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -44,6 +42,12 @@ const authM = new google.auth.JWT({
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
+// For sign in with Google
+const clientId =
+  "794869557223-0ls09vm1bhcpdphicd9rrpbpedhqadhd.apps.googleusercontent.com";
+const clientSecret = "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";
+const redirectUri = "http://localhost:3000/oauth2callback";
+
 // Cached Data "/getData"
 let cachedData = null;
 
@@ -58,14 +62,13 @@ let isProcessingQueueM = false;
 // Endpoints for Vlad to quickly restart server
 app.get("/kapec", (req, res) => {
   cachedData = null;
-  // Send the current date and time as the response
-  res.send("ok");
+  res.send("okay");
 });
 
 app.get("/babita", (req, res) => {
   dataArrayE = [];
   dataArrayM = [];
-  res.send("ok");
+  res.send("okay");
 });
 
 // Get Date
@@ -79,41 +82,40 @@ app.get("/currentDateTime", (req, res) => {
 // Configure bodyParser to parse JSON data
 app.use(bodyParser.json());
 
-// Create a new JWT client using the service account credentials
-const keyPath = "./credentialss.json";
-const credentials = require(keyPath);
-const jwtClient = new google.auth.JWT(
-  credentials.client_email,
-  null,
-  credentials.private_key,
-  ["https://www.googleapis.com/auth/userinfo.profile"]
+// Sign in with Google
+const oauth2Client = new google.auth.OAuth2(
+  clientId,
+  clientSecret,
+  redirectUri
 );
 
-// Retrieve the user's Google name
-async function getUserGoogleName() {
-  const service = google.people({ version: "v1", auth: jwtClient });
-  const response = await service.people.get({
-    resourceName: "people/me",
-    personFields: "names",
+app.get("/signin/google", (req, res) => {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: "https://www.googleapis.com/auth/userinfo.profile",
+    prompt: "select_account",
   });
-  const googleName = response.data.names[0].displayName;
-  return googleName;
-}
 
-// Define the route for Google sign-in
-app.get("/signin/google", async (req, res) => {
+  res.redirect(authUrl);
+});
+
+app.get("/oauth2callback", async (req, res) => {
+  const { code } = req.query;
+
   try {
-    // Retrieve the user's Google name
-    const googleName = await getUserGoogleName();
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
 
-    // Do whatever you want with the Google name (e.g., store it, send it back as a response, etc.)
+    const service = google.oauth2({ version: "v2", auth: oauth2Client });
+    const response = await service.userinfo.get();
+    const googleName = response.data.name;
 
-    // Return a response indicating success or any other desired result
-    res.json({ name: googleName });
+    res.redirect(
+      `http://localhost:3000/?signInSuccess=true&googleName=${googleName}`
+    );
   } catch (error) {
-    // Handle any errors that occurred during the process
     console.error("Error:", error);
-    res.status(500).json({ error: "An error occurred" });
+    res.status(500).send("An error occurred");
   }
 });
 
@@ -179,8 +181,6 @@ app.post("/getEmailsFromEntered", (req, res) => {
     res.json({ data: 0 });
   }
 });
-
-// Define the file path for storing the array of objects
 
 app.post("/setData", async (req, res) => {
   const spreadsheetId = req.body.spreadsheetId;
