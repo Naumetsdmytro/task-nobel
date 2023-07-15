@@ -487,8 +487,8 @@ ul {
 /* Sign in with Google */
 
 .signIn-google {
+  display: none;
   cursor: pointer;
-  display: inline-flex;
   border: none;
   padding: 22px 28px;
   font-style: normal;

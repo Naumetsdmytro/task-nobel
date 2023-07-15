@@ -18,9 +18,11 @@ let roomNumber = 0;
 let links = [];
 let googleName = "";
 
-const fetchSpreadSheetData = async () => {
-  signInButton.style.display = "none";
+// Params
+const urlParams = new URLSearchParams(window.location.search);
+const signInSuccess = urlParams.get("signInSuccess");
 
+const fetchSpreadSheetData = async () => {
   const response = await fetch("/getData");
   const { data } = await response.json();
 
@@ -39,21 +41,26 @@ const fetchSpreadSheetData = async () => {
     timerContainer.style.display = "none";
     signInContainer.style.display = "none";
     noEduguest.style.display = "block";
+    signInButton.style.display = "none";
   } else if (
     currentDate.getTime() > eqDate &&
     currentDate.getTime() < updatedLatestDate.getTime()
   ) {
     timerContainer.style.display = "none";
-    signInContainer.style.display = "block";
     noEduguest.style.display = "none";
+    signInContainer.style.display = signInSuccess ? "block" : "none";
+    signInButton.style.display = signInSuccess ? "none" : "inline-flex";
   } else if (currentDate.getTime() < eqDate.getTime()) {
     countdownTimer(eqDate);
+    signInButton.style.display = "none";
     timerContainer.style.display = "block";
     signInContainer.style.display = "none";
     noEduguest.style.display = "none";
     timerId = setInterval(countdownTimer, 1000, eqDate);
   }
 };
+
+fetchSpreadSheetData();
 
 // Form submit
 const form = document.querySelector(".form");
@@ -148,8 +155,6 @@ function handleGoogleSignIn() {
 }
 
 // Check if the URL contains the query parameter indicating successful sign-in
-const urlParams = new URLSearchParams(window.location.search);
-const signInSuccess = urlParams.get("signInSuccess");
 
 if (signInSuccess === "true") {
   // Call the function to fetch spreadsheet data
