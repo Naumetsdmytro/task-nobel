@@ -121,9 +121,9 @@ app.get("/oauth2callback", async (req, res) => {
 
 // Define a route to handle the /getDate request
 app.get("/getData", (req, res) => {
+  const currentDate = new Date();
   if (cachedData) {
     const startDate = new Date(cachedData[0]);
-    const currentDate = new Date();
     if (new Date(startDate.getTime() + 120 * 60 * 1000) < currentDate) {
       cachedData = null;
       dataArrayE = [];
@@ -153,9 +153,19 @@ app.get("/getData", (req, res) => {
 
       const rows = response.data.values;
       if (rows && rows.length) {
-        const lastRow = rows[rows.length - 1];
-        cachedData = lastRow; // Cache the retrieved data
-        res.json({ data: lastRow });
+        rows.shift();
+        const closestDateArray = rows.reduce((closest, current) => {
+          const currentRowDate = new Date(current[0]);
+          const closestRowDate = new Date(closest[0]);
+
+          const currentDiff = Math.abs(currentRowDate - currentDate);
+          const closestDiff = Math.abs(closestRowDate - currentDate);
+
+          return currentDiff < closestDiff ? current : closest;
+        });
+
+        cachedData = closestDateArray;
+        res.json({ data: closestDateArray });
       } else {
         res.json({ message: "No data found." });
       }
