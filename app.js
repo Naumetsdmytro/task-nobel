@@ -24,8 +24,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const clientEmailE = "eduquest-app-v1@appspot.gserviceaccount.com";
 const privateKeyE =
   "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCMGNmZutOw/BpK\nsrAE+jf5AXtKeROM7kC49S5aXp17c1HfNlT7XoA89DZHlhjnQYmohtWd0Fq/faa9\nsp81cUvev1m779mIo5YDlVm4bw61SVc+U1nI9dCpc/woW+Rcx1L+Ek23qIJfztTQ\nMWOYr48YfiD1UvQeYNBpkJMstSdUHoKA/kbN405YEVBmVdgS2P5dhc8MIaGJFk6f\nKRHD7cG4X3jYsLKCm7bD4ZzADRBgwmwjIZpBfk2gTvoprUUxt6PApwHZy/C7CAHm\nAKWqN78c+URfdAO4zqmnubrgJdAyE3fxAVTmyw4QdcBuwlPWHJ1fECRTb34DZZLW\nDHnovNpfAgMBAAECggEAPn8BZzo4IC4+Pk9bBUVn/b1C9jRv28EW/0tkq6ykfQMz\nJSt0GpSMCWT559JV9qe+VH8dwSJGsUDIxrvtmOYbLdlXmuaCuJkdHSkdVpC4U3fN\nowCEv4ik1krm1Ew14YuLgsrAf6r8yeeW+O7nWqAKaict5bJlMz4GCumTNfD0A+pV\nXkbvP0C6RnSl/4Y7qY+O6S7nOQoSknOlBOa6oiOKlzg/uZdHbeFfV0G7fwEXkJtp\nToHfKX6WMboxSeLcFLf/BrrCeg3ZaoDQNNSagCWYVUyU4Mb1Z/PPLJkC25daDcic\nqisMm7mjllwWxDWMnSFbKbetIlD7hxyBtxhqozmeSQKBgQC+zVIv9uHM9RB5xBGV\nZTKCC5JH2WE7FaO63vtk7Pk/eHCP2A5WdMnCegowZBQeksZLQKOl5d4Pk/2htCL7\nXY6lOBCH0GyyfkF2o5YJ6XRxXtpIIngIJ0E9la5cwLQsoeUhScdiySZM6stqECLw\nk4FdnKXcpSRkKGN5Dkbs1UHXKQKBgQC7+ApHLsfxyISNwsyfmpcFnX2cHjOv37KX\ndWr2IM9iOZqM/aXx98XnRVOvKixvuJWRp97F/lhri0UpJ+0EmW8j6JmeVFeXGFVe\nekD37QRuHuO95u+SumCryszSDsUNRkv5qU77FHyL32tcFKLozbvnXdS2P7qKqzOw\nrgoklXR+RwKBgQCpT3MN4urNv+0F0Em2Ix2lrnT40tnn3zTx/ypfjbVDcDGaQyO9\n7laW/0qJVFVSJ/ZUEqDk9syNUEpxsnKUUZnh3JU2n2nFHiojB9h9JS9R5tSVzBht\nS8Al0OvvnISFUogLePe4HjyhZnxourb2ej4Cfp3j5JsdUYWrh1LCmB6buQKBgQCT\nz+nFMDRrHZOfJqBiod5AvCgarGVY2EBIej0yb3qlc0bluFDWhlFKHGpCRJfNAwob\nEDdO20QMzegFBTCNfVq4kiC7MPfwCWKYeOq+C9SABCpzGzcp2wZKEaAfTx4F4lG8\ncjd5mhKWq4pxTokNKTuqJU8wQc0fXqG3PiUbv6tr4QKBgCFlPmQ6ZmAPisp2sWNO\nwWDLCQM6q1Qs1beFVJvLJfH0hnOyZAMZgijnIeyycoNeFCku/3srJm5faHsSgEQZ\n58ACnGw9DW4DyszlHT2ju9z6nS9hvLeAb3olmyl6MnDof5lZbfI2+pMPIA8HeA3j\nHf/PM9MOrJhfAxHOaK97r7co\n-----END PRIVATE KEY-----\n";
-//const spreadsheetId = "12oLLufV9URey5NviLwjB6Rhy0qJTAMuHMnjaebJmmi4"; //real
-const spreadsheetId = "1D0mmQRkO27Jr2nSkkj7EyhFL6WIqd30Zvu9lcWH13ow"; //test this one is test
+const spreadsheetId = "1D0mmQRkO27Jr2nSkkj7EyhFL6WIqd30Zvu9lcWH13ow"; //real
+//const spreadsheetId = "1D0mmQRkO27Jr2nSkkj7EyhFL6WIqd30Zvu9lcWH13ow"; //test this one is test
 // Create a new JWT client using the loaded credentials
 const authE = new google.auth.JWT({
   email: clientEmailE,
@@ -46,17 +46,16 @@ const authM = new google.auth.JWT({
 const clientId =
   "794869557223-0ls09vm1bhcpdphicd9rrpbpedhqadhd.apps.googleusercontent.com";
 const clientSecret = "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";
-//const baselink = "https://eduquest.nobelexplorers.live";
-// const baselink = "https://test-dot-eduquest-app-v1.uw.r.appspot.com";
 const baselink = "http://localhost:3000";
+//const baselink = "https://test-dot-eduquest-app-v1.uw.r.appspot.com"
 const redirectUri = baselink + "/oauth2callback";
 
 // Cached Data "/getData"
 let cachedData = null;
 
 // Load existing data from the file or initialize an empty array
-const dataArrayE = [];
-const dataArrayM = [];
+let dataArrayE = [];
+let dataArrayM = [];
 const requestQueueE = [];
 const requestQueueM = [];
 let isProcessingQueueE = false;
@@ -69,10 +68,8 @@ app.get("/kapec", (req, res) => {
 });
 
 app.get("/babita", (req, res) => {
-  dataArrayE.length = 0;
-  requestQueueE.length = 0;
-  requestQueueM.length = 0;
-  dataArrayM.length = 0;
+  dataArrayE = [];
+  dataArrayM = [];
   res.send("okay");
 });
 
@@ -118,7 +115,7 @@ app.get("/oauth2callback", async (req, res) => {
     res.redirect(`${baselink}/?signInSuccess=true&googleName=${googleName}`);
   } catch (error) {
     console.error("Error:", error);
-    res.redirect(`${baselink}/?signInSuccess=false`);
+    res.status(500).send("An error occurred");
   }
 });
 
@@ -129,10 +126,8 @@ app.get("/getData", (req, res) => {
     const startDate = new Date(cachedData[0]);
     if (new Date(startDate.getTime() + 120 * 60 * 1000) < currentDate) {
       cachedData = null;
-      dataArrayE.length = 0;
-      dataArrayM.length = 0;
-      requestQueueE.length = 0;
-      requestQueueM.length = 0;
+      dataArrayE = [];
+      dataArrayM = [];
     }
   }
   if (cachedData) {
@@ -267,7 +262,7 @@ async function processQueueE() {
       // Set the data in the appropriate row
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${sheetName}!A${lastRow}:D${lastRow}`,
+        range: `${sheetName}!A${lastRow}:C${lastRow}`,
         valueInputOption: "USER_ENTERED",
         resource: {
           values: [data],
@@ -278,13 +273,12 @@ async function processQueueE() {
       sheetObj.count++;
       requestQueueE.shift();
     } catch (error) {
-      console.error("Quota error");
+      console.error(error, "Quota error");
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
   isProcessingQueueE = false; // Reset the processing flag
 }
-
 async function processQueueM() {
   isProcessingQueueM = true; // Set the processing flag
 
@@ -292,29 +286,47 @@ async function processQueueM() {
     const { spreadsheetId, data, sheetName } = requestQueueM[0]; // Retrieve the first request from the queue
     try {
       const sheets = google.sheets({ version: "v4", auth: authM });
+      // Check if the spreadsheet object exists in the array
+      let spreadsheetObj = dataArrayM.find(
+        (obj) => obj.spreadsheetId === spreadsheetId
+      );
 
-      // Get the last row in the sheet
-      const response = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: `${sheetName}!A:B`,
-        majorDimension: "ROWS",
-      });
-      const rows = response.data.values;
-      const lastRow = rows.length + 1;
+      // If the spreadsheet object doesn't exist, create a new one with count = 1
+      if (!spreadsheetObj) {
+        spreadsheetObj = {
+          spreadsheetId,
+          sheets: [{ sheetName, count: 2 }],
+        };
+        dataArrayM.push(spreadsheetObj);
+      }
+
+      let sheetObj = spreadsheetObj.sheets.find(
+        (obj) => obj.sheetName === sheetName
+      );
+
+      // If the sheet object doesn't exist, create a new one with count = 1
+      if (!sheetObj) {
+        spreadsheetObj.sheets.push({ sheetName, count: 3 });
+        sheetObj = { sheetName, count: 2 };
+      }
+
+      const lastRow = sheetObj.count;
 
       // Set the data in the appropriate row
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${sheetName}!A${lastRow}:B${lastRow}`,
+        range: `${sheetName}!A${lastRow}:C${lastRow}`,
         valueInputOption: "USER_ENTERED",
         resource: {
           values: [data],
         },
       });
 
+      // Increment the count
+      sheetObj.count++;
       requestQueueM.shift();
     } catch (error) {
-      console.error("Quota error");
+      console.error(error, "Quota error");
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }

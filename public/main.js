@@ -72,15 +72,13 @@ function onFormSubmit(evt) {
   evt.preventDefault();
 
   const name = form.elements.name.value;
-  const processName = name.split(" ").length > 1 ? name : "";
+  const processName = name.split(" ").length === 2 ? name : "";
   const email = form.elements.email.value;
 
   let room = getRandomNumber(1, roomNumber);
-  const sheetName = "Main room " + room;
-  if (processName === "" || email === "") {
-    //please enter full name
-    return;
-  }
+  const sheetName = room === 1 ? "Main room 1" : "Main room 2";
+
+  if (processName === "" || email === "") return;
   formButton.disabled = true;
 
   formButton.style.display = "none";
@@ -115,7 +113,7 @@ function onFormSubmit(evt) {
         body: JSON.stringify({
           sheetName: "Entered",
           spreadsheetId: spreadSheetId,
-          data: [email, processName, googleName, room],
+          data: [email, processName, room],
         }),
       }).catch((error) => {
         console.log(error.message);
