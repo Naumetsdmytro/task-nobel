@@ -6,7 +6,6 @@ const formButton = document.querySelector(".form__btn");
 const nameInput = document.querySelector(".form__input");
 const spinner = document.querySelector(".spinner");
 const signInButton = document.querySelector(".signIn-google");
-
 const timerDays = document.querySelector("span[data-days]");
 const timerHours = document.querySelector("span[data-hours]");
 const timerMinutes = document.querySelector("span[data-minutes]");
@@ -60,10 +59,6 @@ const fetchSpreadSheetData = async () => {
   }
 };
 
-//test
-
-//tesdt
-
 fetchSpreadSheetData();
 
 // Form submit
@@ -75,17 +70,31 @@ function onFormSubmit(evt) {
   evt.preventDefault();
 
   const name = form.elements.name.value;
-  const processName = name.split(" ").length === 2 ? name : "";
+  const processName = name.split(" ").length > 1 ? name : "";
   const email = form.elements.email.value;
 
   let room = getRandomNumber(1, roomNumber);
-  const sheetName = room === 1 ? "Main room 1" : "Main room 2";
-
-  if (processName === "" || email === "") return;
+  const sheetName = "Main room " + room;
+  if (processName === "" || email === "") {
+    //please enter full name
+    return;
+  }
   formButton.disabled = true;
 
   formButton.style.display = "none";
   spinner.style.display = "inline-block";
+
+  const isEduquestActive = fetch("/isEduquestActive")
+    .then((response) => {
+      return response.json();
+    })
+    .then(({ data }) => {
+      console.log(data);
+      if (!data) return;
+
+      window.location.href = data;
+      return;
+    });
 
   fetch(`/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`, {
     method: "POST",
@@ -116,7 +125,7 @@ function onFormSubmit(evt) {
         body: JSON.stringify({
           sheetName: "Entered",
           spreadsheetId: spreadSheetId,
-          data: [email, processName, room],
+          data: [email, processName, googleName, room],
         }),
       }).catch((error) => {
         console.log(error.message);
@@ -159,9 +168,7 @@ function handleGoogleSignIn() {
 }
 
 // Check if the URL contains the query parameter indicating successful sign-in
-
 if (signInSuccess === "true") {
-  // Call the function to fetch spreadsheet data
   googleName = urlParams.get("googleName");
   fetchSpreadSheetData();
 }
@@ -193,8 +200,7 @@ function countdownTimer(toDate) {
 
   if (delta < 0) {
     clearInterval(timerId);
-    signInContainer.style.display = "block";
-    timerContainer.style.display = "none";
+    fetchSpreadSheetData();
     return;
   }
   const { days, hours, minutes, seconds } = convertMs(delta);
