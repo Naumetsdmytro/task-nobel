@@ -5,6 +5,7 @@ const noEduguest = document.querySelector(".no-eduquest");
 const formButton = document.querySelector(".form__btn");
 const nameInput = document.querySelector(".form__input");
 const spinner = document.querySelector(".spinner");
+const headerTitles = document.querySelectorAll(".heading__title");
 const signInButton = document.querySelector(".signIn-google");
 const timerDays = document.querySelector("span[data-days]");
 const timerHours = document.querySelector("span[data-hours]");
@@ -24,6 +25,10 @@ const signInSuccess = urlParams.get("signInSuccess");
 const fetchSpreadSheetData = async () => {
   const response = await fetch("/getData");
   const { data } = await response.json();
+
+  headerTitles.forEach((title) => {
+    title.textContent = `${data[4]} Eduquest`;
+  });
 
   spreadSheetId = data[1];
   roomNumber = data[2];
@@ -68,7 +73,6 @@ form.addEventListener("submit", onFormSubmit);
 
 function onFormSubmit(evt) {
   evt.preventDefault();
-
   const name = form.elements.name.value;
   const processName = name.split(" ").length > 1 ? name : "";
   const email = form.elements.email.value;
@@ -84,74 +88,68 @@ function onFormSubmit(evt) {
   formButton.style.display = "none";
   spinner.style.display = "inline-block";
 
-  const isEduquestActive = fetch("/isEduquestActive")
+  fetch("/isEduquestActive")
     .then((response) => {
       return response.json();
     })
     .then(({ data }) => {
-      console.log(data);
-      if (!data) return;
-
-      window.location.href = data;
-      return;
-    });
-
-  fetch(`/getEmailsFromEntered?spreadsheetId=${spreadSheetId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      data: [email, processName, room],
-    }),
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then(({ data }) => {
-      if (data) {
-        const link = links.filter((link, index) => Number(data) === index + 1);
-        window.location.href = link[0];
-        return;
-      }
-      const link = links.filter((link, index) => room === index + 1);
-      window.location.href = link[0];
-      form.reset();
-      fetch("/setData", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sheetName: "Entered",
-          spreadsheetId: spreadSheetId,
-          data: [email, processName, googleName, room],
-        }),
-      }).catch((error) => {
-        console.log(error.message);
-      });
-
-      fetch("/setData", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sheetName,
-          spreadsheetId: spreadSheetId,
-          data: [processName, googleName],
-        }),
-      }).catch((error) => {
-        console.log(error.message);
-      });
-    })
-    .catch((error) => {
-      console.log(error.message);
-    })
-    .finally(() => {
-      formButton.style.display = "inline-flex";
-      spinner.style.display = "none";
-      formButton.disabled = false;
+      if (data[0] === true && signInSuccess === "true") {
+        fetch("/getEmailsFromEntered", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            data: email,
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then(({ data }) => {
+            if (data) {
+              window.location.href = links[Number(data) - 1];
+              return;
+            }
+            const link = links.filter((link, index) => room === index + 1);
+            window.location.href = links[room - 1];
+            form.reset();
+            fetch("/setData", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                sheetName: "Entered",
+                spreadsheetId: spreadSheetId,
+                data: [email, processName, googleName, room],
+              }),
+            }).catch((error) => {
+              console.log(error.message);
+            });
+            fetch("/setData", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                sheetName,
+                spreadsheetId: spreadSheetId,
+                data: [processName, googleName],
+              }),
+            }).catch((error) => {
+              console.log(error.message);
+            });
+          })
+          .catch((error) => {
+            console.log(error.message);
+          })
+          .finally(() => {
+            formButton.style.display = "inline-flex";
+            spinner.style.display = "none";
+            formButton.disabled = false;
+          });
+      } else window.location.href = data[1];
     });
 }
 

@@ -60,7 +60,7 @@ let isProcessingQueueM = false;
 // Endpoints for Vlad to quickly restart server
 app.get("/kapec", (req, res) => {
   cachedData = null;
-  res.send("okay");
+  res.redirect(baselink);
 });
 
 app.get("/babita", (req, res) => {
@@ -68,7 +68,7 @@ app.get("/babita", (req, res) => {
   requestQueueE.length = 0;
   requestQueueM.length = 0;
   dataArrayM.length = 0;
-  res.send("okay");
+  res.redirect(baselink);
 });
 
 // Get Date
@@ -126,10 +126,10 @@ app.get("/isEduquestActive", (req, res) => {
     currentDate.getTime() >= startDate.getTime() &&
     currentDate <= processStartDate.getTime()
   ) {
-    res.json({ data: true });
+    res.json({ data: [true, baselink] });
     return;
   }
-  res.json({ data: baselink });
+  res.json({ data: [false, baselink] });
 });
 
 // Define a route to handle the /getDate request
@@ -155,7 +155,7 @@ app.get("/getData", (req, res) => {
   sheets.spreadsheets.values.get(
     {
       spreadsheetId: spreadsheetId,
-      range: "Eduquests!A:D",
+      range: "Eduquests!A:E",
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
     },
@@ -190,18 +190,17 @@ app.get("/getData", (req, res) => {
 app.use(express.json());
 
 app.post("/getEmailsFromEntered", (req, res) => {
-  const data = req.body.data;
+  const email = req.body.data;
   let isEmailExist = false;
-
   let spreadsheetObj = dataArrayE[0];
 
   if (spreadsheetObj) {
-    const enteredEmails = spreadsheetObj.data;
-    isEmailExist = enteredEmails.find((email) => email === data[0]);
+    const enteredData = spreadsheetObj.data;
+    isEmailExist = enteredData.find((data) => data[0] === email);
   }
 
   if (isEmailExist) {
-    res.json({ data: data[2] });
+    res.json({ data: isEmailExist[3] });
   } else {
     res.json({ data: 0 });
   }
@@ -261,7 +260,7 @@ async function processQueueE() {
         (obj) => obj.sheetName === sheetName
       );
 
-      spreadsheetObj.data.push(data[0]);
+      spreadsheetObj.data.push(data);
 
       // If the sheet object doesn't exist, create a new one with count = 3
       if (!sheetObj) {
