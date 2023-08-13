@@ -47,7 +47,6 @@ const authM = new google.auth.JWT({
 // Cached Data "/getData"
 let cachedData = null;
 
-// Load existing data from the file or initialize an empty array
 const dataArrayE = [];
 const dataArrayM = [];
 
@@ -176,7 +175,9 @@ app.get("/getData", (req, res) => {
           const currentDiff = Math.abs(currentRowDate - currentDate);
           const closestDiff = Math.abs(closestRowDate - currentDate);
 
-          return currentDiff < closestDiff ? current : closest;
+          return currentDiff < closestDiff && currentRowDate >= currentDate
+            ? current
+            : closest;
         });
 
         cachedData = closestDateArray;
