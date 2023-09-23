@@ -2,6 +2,7 @@ const express = require("express");
 const { Mutex } = require("async-mutex");
 const { google } = require("googleapis");
 const path = require("path");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
 
@@ -10,18 +11,21 @@ const app = express();
 
 // Set the static files directory
 const publicDir = path.join(__dirname, "public");
-app.use(express.static(publicDir));
 
+//  Middlewares --- USE
+app.use(express.static(publicDir));
 app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   next();
 });
-
-// Middleware to parse request bodies
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(express.json());
 
+// .env Variables
 const clientEmailE = process.env.CLIENT_EMAIL_E;
 const privateKeyE = process.env.PRIVATE_KEY_E;
 const spreadsheetId = process.env.SPREADSHEET_ID;
@@ -77,9 +81,6 @@ app.get("/currentDateTime", (req, res) => {
   res.json({ currentDateTime: currentDate });
 });
 
-// Configure bodyParser to parse JSON data
-app.use(bodyParser.json());
-
 // Sign in with Google
 const oauth2Client = new google.auth.OAuth2(
   clientId,
@@ -118,7 +119,7 @@ app.get("/oauth2callback", async (req, res) => {
 // Endpoint to be sure that the eduquest has started
 app.get("/isEduquestActive", (req, res) => {
   const currentDate = new Date();
-  const startDate = new Date(cachedData[0]);
+  const startDate = new Date(cachedData[0][0]);
   const processStartDate = new Date(startDate.getTime() + 90 * 60 * 1000);
 
   if (
@@ -135,7 +136,7 @@ app.get("/isEduquestActive", (req, res) => {
 app.get("/getData", (req, res) => {
   const currentDate = new Date();
   if (cachedData) {
-    const startDate = new Date(cachedData[0]);
+    const startDate = new Date(cachedData[0][0]);
     if (new Date(startDate.getTime() + 120 * 60 * 1000) < currentDate) {
       cachedData = null;
       dataArrayE.length = 0;
@@ -154,11 +155,11 @@ app.get("/getData", (req, res) => {
   sheets.spreadsheets.values.get(
     {
       spreadsheetId: spreadsheetId,
-      range: "Eduquests!A:E",
+      range: "Eduquests!A:F",
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
     },
-    (err, response) => {
+    async (err, response) => {
       if (err) {
         console.error("Error:", err);
         res.status(500).send("An error occurred");
@@ -168,27 +169,117 @@ app.get("/getData", (req, res) => {
       const rows = response.data.values;
       if (rows && rows.length) {
         rows.shift();
-        const closestDateArray = rows.reduce((closest, current) => {
-          const currentRowDate = new Date(current[0]);
-          const closestRowDate = new Date(closest[0]);
-
-          const currentDiff = Math.abs(currentRowDate - currentDate);
-          const closestDiff = Math.abs(closestRowDate - currentDate);
-
-          return currentDiff < closestDiff && currentRowDate >= currentDate
-            ? current
-            : closest;
-        });
-
-        cachedData = closestDateArray;
-        res.json({ data: closestDateArray });
+        const closestDateArray = await getClosestDate(rows);
+        const listOfInterns = await getInternsFromACbyListId(
+          closestDateArray[5]
+        );
+        cachedData = [[...closestDateArray, listOfInterns], rows];
+        res.json({ data: cachedData });
       } else {
         res.json({ message: "No data found." });
       }
     }
   );
 });
-app.use(express.json());
+
+async function getInternsFromACbyListId(listId) {
+  let offset = 0;
+  const contactsData = [];
+
+  while (true) {
+    const response = await fetch(
+      `https://nobelcoaching22331.api-us1.com/api/3/contacts?listid=${listId}&limit=100&offset=${offset}&status=1`,
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          "Api-Token":
+            "f787e136dd0dd5a2d1bc6e9e10b3e13e5e26cff03f7d3d31072e71a741df259e477736c6",
+        },
+      }
+    );
+
+    const result = await response.json();
+    const contacts = await result.contacts;
+
+    if (contacts.length > 0) {
+      contactsData.push(...contacts);
+      offset += 100;
+    } else {
+      break;
+    }
+  }
+
+  const ids = contactsData.map((data) => data.id);
+  return ids;
+}
+
+async function getClosestDate(rows) {
+  const currentDate = new Date();
+
+  const closestDate = rows.reduce((closest, current) => {
+    const currentRowDate = new Date(current[0]);
+    const closestRowDate = new Date(closest[0]);
+
+    const currentDiff = Math.abs(currentRowDate - currentDate);
+    const closestDiff = Math.abs(closestRowDate - currentDate);
+
+    return currentDiff < closestDiff &&
+      currentRowDate.getTime() + 90 * 60 * 1000 >= currentDate
+      ? current
+      : closest;
+  });
+  return closestDate;
+}
+
+app.post("/checkInternInFutureEQ", (req, res) => {
+  const internId = req.body.internId;
+  const eduquestsList = cachedData[1];
+  const closestEQ = cachedData[0];
+
+  const futureEQs = eduquestsList.filter((eduquest) => {
+    const eduquestDate = new Date(eduquest[0]);
+    const eduquestSheetId = eduquest[1];
+    const currentDate = new Date();
+    if (
+      eduquestDate.getTime() > currentDate.getTime() &&
+      closestEQ[1] !== eduquestSheetId
+    ) {
+      return eduquest;
+    }
+  });
+  if (futureEQs.length > 0) {
+    futureEQs.map(async (futureEQ) => {
+      const eqListId = futureEQ[5];
+      const internsList = await getInternsFromACbyListId(eqListId);
+
+      internsList.find((intern) => {
+        if (intern === internId) {
+          res.json({ futureEQ });
+          return;
+        }
+      });
+    });
+  } else {
+    res.json({ futureEQ: null });
+  }
+});
+
+let roomCounter = 0;
+function getNextRoomNumber(max) {
+  roomCounter += 1;
+  if (roomCounter > max) {
+    roomCounter = 1;
+  }
+  return roomCounter;
+}
+
+// Example endpoint that uses the shared roomCounter.
+app.post("/getNextRoomNumber", (req, res) => {
+  const maxRooms = req.body.maxNumber;
+  const roomNumber = getNextRoomNumber(maxRooms);
+  res.json({ roomNumber });
+});
 
 app.post("/getEmailsFromEntered", (req, res) => {
   const email = req.body.data;
@@ -284,7 +375,7 @@ async function processQueueE() {
       sheetObj.count++;
       requestQueueE.shift();
     } catch (error) {
-      console.error("Quota error");
+      console.error(error);
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
@@ -319,7 +410,7 @@ async function processQueueM() {
 
       requestQueueM.shift();
     } catch (error) {
-      console.error("Quota error");
+      console.error(error);
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }

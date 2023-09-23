@@ -124,10 +124,6 @@ ul {
   }
 }
 
-.signIn {
-  display: none;
-}
-
 .form {
   margin-top: 35px;
   margin-bottom: 10px;
@@ -137,6 +133,7 @@ ul {
   flex-direction: column;
   justify-content: center;
   gap: 18px;
+  margin-bottom: 20px;
 }
 .form__item {
   display: flex;
@@ -158,16 +155,15 @@ ul {
   padding: 15px;
   min-height: 57px;
   font-size: 18px;
-  border-radius: 4px;
   border: 1px solid #000000;
   border-radius: 50px;
 }
+
 .form__btn {
   cursor: pointer;
   display: inline-flex;
   border: none;
   padding: 16px 24px;
-  margin-top: 20px;
   font-style: normal;
   font-weight: bold;
   font-size: x-large;
@@ -176,27 +172,39 @@ ul {
   border-radius: 50px;
   transition: background 0.3s ease;
 }
+
 .form__btn:hover {
   background: #9de34e;
 }
+
 .form__btn:disabled,
 .form__btn[disabled] {
   border: 1px solid #999999;
   background-color: #cccccc;
   color: #666666;
 }
+
 /* Spinner */
+.spinner-AC-form-container {
+  display: inline-block;
+}
+
+.spinner-join-form-container {
+  display: inline-block;
+  margin: 25px auto;
+}
+
 .spinner {
   display: none;
-  width: 61px;
-  height: 61px;
-  margin: 25px auto;
+  width: 63px;
+  height: 63px;
+  /* margin: 30px auto 0 auto; */
   position: relative;
   text-indent: -9999em;
-  border-top: 5px solid rgba(0, 0, 0, 0.5);
-  border-right: 5px solid rgba(0, 0, 0, 0.5);
-  border-bottom: 5px solid rgba(0, 0, 0, 0.5);
-  border-left: 5px solid #000000;
+  border-top: 5px solid rgba(0, 128, 0, 0.5);
+  border-right: 5px solid rgba(0, 128, 0, 0.5);
+  border-bottom: 5px solid rgba(0, 128, 0, 0.5);
+  border-left: 5px solid #006400;
   border-radius: 50%;
   transform: translateZ(0);
   animation: spinner 0.6s infinite linear;
@@ -487,8 +495,12 @@ ul {
 
 /* Sign in with Google */
 
-.signIn-google {
+.signIn {
   display: none;
+}
+
+.signIn-google {
+  display: inline-flex;
   cursor: pointer;
   border: none;
   padding: 22px 28px;
@@ -507,6 +519,76 @@ ul {
 
 .signIn-google:disabled,
 .signIn-google[disabled] {
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+/* Active Campaign form */
+
+.activeCampaign-form-container {
+  display: none;
+}
+
+.activeCampaign-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activeCampaign-title {
+  margin-bottom: 80px;
+  font-weight: 700;
+  font-size: 35px;
+
+  @media screen and (min-width: 800px) {
+    margin-bottom: 60px;
+  }
+
+  @media screen and (min-width: 1300px) {
+    margin-bottom: 70px;
+  }
+}
+
+.activeCampaign-form-input {
+  width: 240px;
+  margin-right: 20px;
+  padding: 17px;
+  min-height: 57px;
+  font-size: 18px;
+  border: 1px solid #000000;
+  border-radius: 50px;
+  outline: none;
+
+  @media screen and (min-width: 520px) {
+    width: 400px;
+  }
+}
+
+.activeCampaign-form-button {
+  cursor: pointer;
+  display: inline-flex;
+  border: none;
+  padding: 16px 30px;
+  font-style: normal;
+  font-weight: bold;
+  font-size: x-large;
+  background: #8ebf56;
+  color: #f2f2f2;
+  border-radius: 50px;
+  transition: background 0.3s ease;
+
+  @media screen and (min-width: 520px) {
+    padding: 16px 50px;
+  }
+}
+
+.activeCampaign-form-button:hover {
+  background: #9de34e;
+}
+
+.activeCampaign-form-button:disabled,
+.activeCampaign-form-button[disabled] {
   border: 1px solid #999999;
   background-color: #cccccc;
   color: #666666;

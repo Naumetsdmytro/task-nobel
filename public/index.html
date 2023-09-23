@@ -138,6 +138,18 @@
                             </p>
                         </div>
                     </div>
+                    <div class="activeCampaign-form-container">
+                        <h3 class="activeCampaign-title">Please, enter ID which you received in your email</h3>
+                        <form class="activeCampaign-form">
+                            <input id="AC-id" class="activeCampaign-form-input" name="internACid"
+                                placeholder="Enter your ID" pattern="[0-9]*"
+                                title="Please, write your real id from email!" required />
+                            <button class="activeCampaign-form-button">Send</button>
+                            <div class="spinner-AC-form-container">
+                                <span id="spinner" class="spinner"></span>
+                            </div>
+                        </form>
+                    </div>
                 </div>
                 <button type="button" id="googleSignInButton" class="signIn-google">Sign in with Google for
                     Meet</button>

@@ -1,30 +1,38 @@
-// Elements
+// ELEMENTS
 const timerContainer = document.querySelector(".countdown");
 const signInContainer = document.querySelector(".signIn");
 const noEduguest = document.querySelector(".no-eduquest");
 const formButton = document.querySelector(".form__btn");
 const nameInput = document.querySelector(".form__input");
-const spinner = document.querySelector(".spinner");
+const spinners = document.querySelectorAll(".spinner");
 const headerTitles = document.querySelectorAll(".heading__title");
 const signInButton = document.querySelector(".signIn-google");
+const activeCampaignContainer = document.querySelector(
+  ".activeCampaign-form-container"
+);
+const activeCampaignForm = document.querySelector(".activeCampaign-form");
+const activeCampaignButton = document.querySelector(
+  ".activeCampaign-form-button"
+);
 const timerDays = document.querySelector("span[data-days]");
 const timerHours = document.querySelector("span[data-hours]");
 const timerMinutes = document.querySelector("span[data-minutes]");
 const timerSeconds = document.querySelector("span[data-seconds]");
 
+// ETC VARIABLES
 let timerId = 0;
 let spreadSheetId = "";
 let roomNumber = 0;
 let links = [];
 let googleName = "";
 
-// Params
+// PARAMS
 const urlParams = new URLSearchParams(window.location.search);
 const signInSuccess = urlParams.get("signInSuccess");
 
-const fetchSpreadSheetData = async () => {
-  const response = await fetch("/getData");
-  const { data } = await response.json();
+//SHOWING INTERFACE LOGIC
+const fetchSpreadSheetData = async (data) => {
+  activeCampaignContainer.style.display = "none";
 
   headerTitles.forEach((title) => {
     title.textContent = `${data[4]} Eduquest`;
@@ -45,18 +53,15 @@ const fetchSpreadSheetData = async () => {
     timerContainer.style.display = "none";
     signInContainer.style.display = "none";
     noEduguest.style.display = "block";
-    signInButton.style.display = "none";
   } else if (
     currentDate.getTime() > eqDate &&
     currentDate.getTime() < updatedLatestDate.getTime()
   ) {
     timerContainer.style.display = "none";
     noEduguest.style.display = "none";
-    signInContainer.style.display = signInSuccess ? "block" : "none";
-    signInButton.style.display = signInSuccess ? "none" : "inline-flex";
+    signInContainer.style.display = "block";
   } else if (currentDate.getTime() < eqDate.getTime()) {
     countdownTimer(eqDate);
-    signInButton.style.display = "none";
     timerContainer.style.display = "block";
     signInContainer.style.display = "none";
     noEduguest.style.display = "none";
@@ -64,29 +69,26 @@ const fetchSpreadSheetData = async () => {
   }
 };
 
-fetchSpreadSheetData();
-
-// Form submit
+// "JOIN"-FORM SUBMIT
 const form = document.querySelector(".form");
 
 form.addEventListener("submit", onFormSubmit);
 
-function onFormSubmit(evt) {
+async function onFormSubmit(evt) {
   evt.preventDefault();
   const name = form.elements.name.value;
   const processName = name.split(" ").length > 1 ? name : "";
   const email = form.elements.email.value;
 
-  let room = getRandomNumber(1, roomNumber);
+  let room = await getRandomNumber(1, roomNumber);
   const sheetName = "Main room " + room;
   if (processName === "" || email === "") {
-    //please enter full name
     return;
   }
   formButton.disabled = true;
 
   formButton.style.display = "none";
-  spinner.style.display = "inline-block";
+  showSpinner();
 
   fetch("/isEduquestActive")
     .then((response) => {
@@ -112,7 +114,7 @@ function onFormSubmit(evt) {
               return;
             }
             const link = links.filter((link, index) => room === index + 1);
-            window.location.href = links[room - 1];
+            window.open(links[room - 1], "_blank");
             form.reset();
             fetch("/setData", {
               method: "POST",
@@ -146,17 +148,30 @@ function onFormSubmit(evt) {
           })
           .finally(() => {
             formButton.style.display = "inline-flex";
-            spinner.style.display = "none";
+            hideSpinner();
             formButton.disabled = false;
           });
-      } else window.location.href = data[1];
+      } else {
+        window.location.href = data[1];
+      }
     });
 }
 
-function getRandomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+async function getRandomNumber(min, maxNumber) {
+  const response = await fetch("/getNextRoomNumber", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      maxNumber,
+    }),
+  });
+  const { roomNumber } = await response.json();
+  return roomNumber;
 }
 
+// GOOGLE SIGN IN
 signInButton.addEventListener("click", handleGoogleSignIn);
 
 function handleGoogleSignIn() {
@@ -165,13 +180,76 @@ function handleGoogleSignIn() {
   window.location.href = authUrl;
 }
 
-// Check if the URL contains the query parameter indicating successful sign-in
-if (signInSuccess === "true") {
+// Check if the URL contains successful sign-in and googleName
+if (signInSuccess === "true" && !googleName) {
   googleName = urlParams.get("googleName");
-  fetchSpreadSheetData();
+  signInButton.style.display = "none";
+  activeCampaignContainer.style.display = "block";
+} else {
+  activeCampaignContainer.style.display = "none";
+  // fetchSpreadSheetData();
 }
 
-// Countdown
+// ACTIVE CAMPAIGN
+activeCampaignForm.addEventListener("submit", onACformSubmit);
+
+async function onACformSubmit(evt) {
+  evt.preventDefault();
+  const internId = activeCampaignForm.elements.internACid.value;
+
+  const responseDate = await fetch("/currentDateTime");
+  const { currentDateTime } = await responseDate.json();
+  const currentDate = new Date(currentDateTime);
+
+  try {
+    activeCampaignButton.style.display = "none";
+    showSpinner();
+    activeCampaignForm.reset();
+
+    const response = await fetch("/getData");
+    const { data } = await response.json();
+    const eqDate = new Date(data[0][0]);
+    const processedEQDate = new Date(eqDate.getTime() + 90 * 60 * 1000);
+    const closestInternsList = data[0][6];
+
+    if (processedEQDate.getTime() < currentDate.getTime()) {
+      showNoUpcomingEQ();
+      return;
+    }
+
+    const isInternExist = closestInternsList.find((intern) => {
+      if (intern === internId) {
+        fetchSpreadSheetData(data[0]);
+        return intern;
+      }
+    });
+    if (!isInternExist) {
+      const response = await fetch("/checkInternInFutureEQ", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          internId,
+        }),
+      });
+      const { futureEQ } = await response.json();
+      futureEQ ? fetchSpreadSheetData(futureEQ) : showNoUpcomingEQ();
+    }
+  } catch (error) {
+    console.log(error.message);
+  } finally {
+    hideSpinner();
+    activeCampaignButton.style.display = "inline";
+  }
+}
+
+function showNoUpcomingEQ() {
+  noEduguest.style.display = "block";
+  activeCampaignContainer.style.display = "none";
+}
+
+// COUNTDOWN
 function addLeadingZero(value) {
   return String(value).padStart(2, "0");
 }
@@ -206,4 +284,17 @@ function countdownTimer(toDate) {
   timerHours.textContent = hours;
   timerMinutes.textContent = minutes;
   timerSeconds.textContent = seconds;
+}
+
+//SPINNER
+function showSpinner() {
+  spinners.forEach((spinner) => {
+    spinner.style.display = "inline-block";
+  });
+}
+
+function hideSpinner() {
+  spinners.forEach((spinner) => {
+    spinner.style.display = "none";
+  });
 }
