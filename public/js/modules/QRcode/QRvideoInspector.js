@@ -24,7 +24,27 @@ export class QRvideoInspector extends VideoInspector {
   }
 
   async updateUserResult() {
-    super.updateUserResult();
+    const response = await fetch("/users");
+    const users = await response.json();
+    console.log(users);
+
+    const userACId = this.getUserACId();
+    const user = users.find((user) => user.id === userACId);
+
+    await fetch(`users/${userACId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        camera: true,
+        microphone: false,
+        audio: false,
+        meetingLink: user.meetingLink,
+        isPossibleToUsePhone: false,
+      }),
+    });
+
     fetch("/phoneCamera")
       .then((response) => response.json())
       .then((data) => console.log(data))

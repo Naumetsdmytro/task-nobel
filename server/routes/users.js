@@ -43,6 +43,7 @@ router.post("/", (req, res) => {
       microphone: false,
       audio: false,
       meetingLink,
+      isPossibleToUsePhone: true,
     };
     users.push(user);
 
@@ -67,7 +68,9 @@ router.put("/:id", (req, res) => {
     if (index === -1) {
       throw HttpError(400, "Bad request");
     }
-    users[index] = { id, ...data };
+    const { isPossibleToUsePhone } = users[index];
+
+    users[index] = { id, isPossibleToUsePhone, ...data };
 
     res.status(200).json(users[index]);
   } catch (error) {

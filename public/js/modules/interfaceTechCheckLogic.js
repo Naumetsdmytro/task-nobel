@@ -21,7 +21,6 @@ function startInspections() {
     if (!signInSuccess) {
       signInButton.style.display = "inline-flex";
     }
-    // deviceInfoText.style.display = "none";
     const videoInspector = new VideoInspector();
     const microInspector = new MicroInspector();
 

@@ -27,26 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.set("view engine", "ejs");
-app.use((req, res, next) => {
-  logRequest(req);
-  next();
-});
 app.use("/users", users);
-
-async function logRequest(req) {
-  const currentDate = new Date();
-  const datePart = currentDate.toLocaleDateString();
-  const timePart = currentDate.toLocaleTimeString();
-  try {
-    const clientIP =
-      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
-    const logEntry = `${datePart} ${timePart} - IP: ${clientIP}, Method: ${req.method}, URL: ${req.originalUrl}\n`;
-
-    await fs.appendFile(logFilePath, logEntry);
-  } catch (error) {
-    console.error("Error logging request:", error);
-  }
-}
 
 // .env Variables
 const clientEmailE = process.env.CLIENT_EMAIL_E;
@@ -297,7 +278,6 @@ app.get("/phoneCamera", (req, res) => {
 
 app.post("/checkInternInFutureEQ", async (req, res) => {
   const internId = req.body.internId;
-  console.log(internId);
   const eduquestsList = cachedData[1];
   const closestEQ = cachedData[0];
   let isInternExist = false;
@@ -305,25 +285,43 @@ app.post("/checkInternInFutureEQ", async (req, res) => {
   const futureEQs = await getFutureEQs(eduquestsList, closestEQ);
 
   if (futureEQs.length > 0) {
-    futureEQs.map(async (futureEQ) => {
-      const eqListId = futureEQ[5];
-      const internsData = await getInternsFromACbyListId(eqListId);
+    let isInternExist = false;
 
-      internsData.find((intern) => {
-        if (intern.id === internId) {
-          isInternExist = true;
-          res.json({ futureEQ });
-          return;
-        }
-      });
-    });
+    for (const futureEQ of futureEQs) {
+      const eqListId = futureEQ[5];
+      const internData = await checkInternInEQById(internId, eqListId);
+
+      if (internData.length > 0) {
+        isInternExist = true;
+        res.json({ futureEQ });
+        return;
+      }
+    }
+
+    if (!isInternExist) {
+      res.json({ futureEQ: null });
+    }
   } else {
     res.json({ futureEQ: null });
   }
-  if (isInternExist !== false) {
-    res.json({ futureEQ: null });
-  }
 });
+
+async function checkInternInEQById(internId, listId) {
+  const response = await fetch(
+    `https://nobelcoaching22331.api-us1.com/api/3/contacts?ids=${internId}&listid=${listId}`,
+    {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "Api-Token":
+          "f787e136dd0dd5a2d1bc6e9e10b3e13e5e26cff03f7d3d31072e71a741df259e477736c6",
+      },
+    }
+  );
+
+  const { contacts } = await response.json();
+  return contacts;
+}
 
 async function getFutureEQs(eduquestsList, closestEQ) {
   return eduquestsList.filter((eduquest) => {
@@ -415,9 +413,17 @@ async function processQueueE() {
 
       // If the spreadsheet object doesn't exist, create a new one with count = 2
       if (!spreadsheetObj) {
+        console.log("request");
+        const response = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: `${sheetName}!A:B`,
+          majorDimension: "ROWS",
+        });
+        const rows = response.data.values;
+        const lastRow = rows.length + 1;
         spreadsheetObj = {
           spreadsheetId,
-          sheets: [{ sheetName, count: 2 }],
+          sheets: [{ sheetName, count: lastRow }],
           data: [],
         };
         dataArrayE.push(spreadsheetObj);

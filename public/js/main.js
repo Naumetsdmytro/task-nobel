@@ -383,6 +383,7 @@ function retryInternCheck(closestInternsList, data) {
 
     const isInternExist = closestInternsList.find((intern) => {
       if (intern.id === internId) {
+        retryForm.style.display = "none";
         fetchSpreadSheetData(data[0]);
         return intern;
       }
