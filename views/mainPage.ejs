@@ -92,9 +92,8 @@
                             <p class="retry-form-text">Please, enter code you received in email</p>
                             <div class="retry-form-subcontainer">
                                 <input type="text" id="ac-id" placeholder="Enter your code" name="acId"
-                                    class="form__input retry-form-input" />
+                                    class="form__input retry-form-input" required />
                                 <button type="submit" class="form__btn" name="retryButton">Check</button>
-                                <span id="spinner" class="spinner"></span>
                             </div>
                         </form>
                     </div>
@@ -134,15 +133,14 @@
                                         characters
                                         only)" required name="name">
                                 </div>
-                                <div class="form__item">
+                                <div class="form__item email-container">
                                     <label class="form__label" for="emailAddress">Please enter the email you used in
                                         your registration form</label>
                                     <input class="form__input" id="emailAddress" type="email" maxLength="64" required
                                         pattern=".+@.+" name="email">
                                 </div>
                             </div>
-                            <button class="form__btn" type="submit">Join</button>
-                            <span id="spinner" class="spinner"></span>
+                            <button class="form__btn" type="submit" name="joinButton">Join</button>
                         </form>
                         <div class="text-info">
                             <p class="info-text">Dear Nobel applicants!</p>
@@ -241,6 +239,7 @@
         <img class="line" src="./images/line.png" />
         <img class="blob" src="./images/blob.png" />
     </div>
+    <script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
     <script type="module" src="./face-api-models/face-api.js"></script>
     <script type="module" src="./js/main.js"></script>
     <script type="module" src="./js/modules/interfaceTechCheckLogic.js"></script>

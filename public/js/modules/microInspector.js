@@ -67,7 +67,7 @@ export class MicroInspector {
   }
 
   inspect() {
-    const timeoutInSeconds = 10;
+    const timeoutInSeconds = 35;
 
     window.SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -99,7 +99,7 @@ export class MicroInspector {
             this.updateUserResult();
             this.handleMicroResult(true);
           }
-        }, 4000);
+        }, 7000);
       }
     });
 

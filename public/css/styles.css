@@ -61,6 +61,11 @@ ul {
   }
 }
 
+.hidden {
+  visibility: hidden;
+  position: absolute;
+}
+
 .main {
   overflow: hidden;
   position: relative;
@@ -827,6 +832,10 @@ canvas {
   color: rgba(0, 96, 0, 0.8);
 }
 
+.qr-camera-container {
+  display: none;
+}
+
 .qrcode-microphone-backdrop {
   display: none;
   align-items: center;
@@ -924,6 +933,7 @@ canvas {
 }
 
 .qr-microphone-container {
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;

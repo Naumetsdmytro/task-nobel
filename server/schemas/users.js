@@ -5,6 +5,7 @@ const updateSchema = Joi.object({
   microphone: Joi.boolean().required(),
   audio: Joi.boolean().required(),
   meetingLink: Joi.string().required(),
+  isPossibleToUsePhone: Joi.boolean(),
 });
 
 module.exports = {

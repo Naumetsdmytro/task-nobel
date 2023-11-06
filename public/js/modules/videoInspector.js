@@ -1,22 +1,28 @@
 export class VideoInspector {
   #startVideoDetection() {
-    navigator.getUserMedia(
-      { video: {} },
-      (stream) => (video.srcObject = stream),
-      (error) => console.log(error)
-    );
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        const video = document.querySelector("video");
+        if ("srcObject" in video) {
+          video.srcObject = stream;
+        } else {
+          video.src = window.URL.createObjectURL(stream);
+        }
+      })
+      .catch((error) => {
+        console.error("Error accessing camera:", error);
+      });
   }
 
-  handleCameraResult(result) {
+  handleCameraResult() {
     const videoContainerEl = document.querySelector(".tech-camera-container");
     const microContainerEl = document.querySelector(
       ".tech-microphone-container"
     );
 
-    if (result) {
-      videoContainerEl.style.display = "none";
-      microContainerEl.style.display = "flex";
-    }
+    videoContainerEl.style.display = "none";
+    microContainerEl.style.display = "flex";
   }
 
   getUserACId() {
@@ -51,7 +57,7 @@ export class VideoInspector {
   }
 
   inspect() {
-    const timeoutInSeconds = 10;
+    const timeoutInSeconds = 35;
 
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri("../../face-api-models/models"),

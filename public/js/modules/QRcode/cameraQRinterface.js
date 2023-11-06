@@ -3,8 +3,22 @@ import { QRvideoInspector } from "./QRvideoInspector.js";
 const cameraCheckButtonEl = document.getElementById("camera-check-btn");
 const qrProcceedBtnEl = document.querySelector(".qr-button");
 const qrFailureMessage = document.querySelector(".qr-failure-message");
+const cameraFailureEl = document.getElementById("camera-failure-text");
+const videoContainerEl = document.querySelector(".tech-camera-container");
 
 const videoInspector = new QRvideoInspector();
+
+if (getParamValue("techCheck")) {
+  videoContainerEl.style.display = "none";
+  cameraFailureEl.style.display = "block";
+} else {
+  videoContainerEl.style.display = "block";
+}
+
+function getParamValue(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
 
 cameraCheckButtonEl.addEventListener("click", () => {
   videoInspector.inspect();
@@ -14,14 +28,16 @@ qrProcceedBtnEl.addEventListener("click", async () => {
   const userId = getUserACId();
   const response = await fetch(`users/${userId}`);
   const user = await response.json();
-  console.log(user);
-  const isFieldsAreTrue = Object.values(user).every((value) => value);
+
+  const isFieldsAreTrue = Object.entries(user).every(
+    ([key, value]) => key === "isPossibleToUsePhone" || value
+  );
 
   if (!isFieldsAreTrue) {
     qrFailureMessage.style.display = "block";
     return;
   }
-  window.location.href = user.meetingLink;
+  window.open(user.meetingLink, "_blank");
 });
 
 function getUserACId() {

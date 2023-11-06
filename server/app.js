@@ -2,17 +2,19 @@ const express = require("express");
 const { Mutex } = require("async-mutex");
 const { google } = require("googleapis");
 const path = require("path");
-const fs = require("fs").promises;
 const bodyParser = require("body-parser");
 require("dotenv").config();
+const http = require("http");
+const socketIO = require("socket.io");
 const users = require("./routes/users");
 
 const lock = new Mutex();
 const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
 
 // Set the static files directory
 const publicDir = path.join(__dirname, "..", "public");
-const logFilePath = path.join("logs", "requestsData.log");
 
 //  Middlewares --- USE
 app.use(express.static(publicDir));
@@ -28,6 +30,12 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use("/users", users);
+
+io.on("connection", (socket) => {
+  socket.on("join", (userId) => {
+    socket.join(userId);
+  });
+});
 
 // .env Variables
 const clientEmailE = process.env.CLIENT_EMAIL_E;
@@ -54,6 +62,7 @@ const authM = new google.auth.JWT({
 
 // Cached Data "/getData"
 let cachedData = null;
+const userStates = {};
 
 const dataArrayE = [];
 const dataArrayM = [];
@@ -76,6 +85,14 @@ app.get("/babita", (req, res) => {
   requestQueueM.length = 0;
   dataArrayM.length = 0;
   res.redirect(baselink);
+});
+
+app.get("/cameraCheckSuccess/:userId", (req, res) => {
+  const { userId } = req.params;
+  userStates[userId] = { cameraCheck: true };
+
+  io.to(userId).emit("cameraCheckPassed");
+  res.sendStatus(200);
 });
 
 // Get Date
@@ -270,10 +287,18 @@ async function getClosestDate(rows) {
   return closestDate;
 }
 
-app.get("/phoneCamera", (req, res) => {
-  console.log("okay");
-  // res.render("microphonePage");
-  res.redirect(baselink);
+app.post("/cameraCheckSuccess/:userId", (req, res) => {
+  const { userId } = req.params;
+  io.to(userId).emit("cameraCheckPassed");
+
+  res.sendStatus(200);
+});
+
+app.post("/microphoneCheckSuccess/:userId", (req, res) => {
+  const { userId } = req.params;
+  io.to(userId).emit("microphoneCheckPassed");
+
+  res.sendStatus(200);
 });
 
 app.post("/checkInternInFutureEQ", async (req, res) => {
@@ -413,7 +438,6 @@ async function processQueueE() {
 
       // If the spreadsheet object doesn't exist, create a new one with count = 2
       if (!spreadsheetObj) {
-        console.log("request");
         const response = await sheets.spreadsheets.values.get({
           spreadsheetId,
           range: `${sheetName}!A:B`,
@@ -504,6 +528,6 @@ app.use((req, res) => {
 
 // Start the server
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });

@@ -4,14 +4,15 @@ const signInContainer = document.querySelector(".signIn");
 const noEduguest = document.querySelector(".no-eduquest");
 const techCheckContainer = document.querySelector(".tech-check");
 const techCameraContainer = document.querySelector(".tech-camera-container");
-const failureEl = document.getElementById("failure-text");
 const techMicroContainer = document.querySelector(".tech-microphone-container");
+const anotherDeviceText = document.querySelector("#qr-microphone-text");
+const failureEl = document.getElementById("failure-text");
+const techAudioContainer = document.querySelector(".tech-audio-container");
 const audioForm = document.querySelector(".audio-form");
 const audioFailureTextEl = document.querySelector(".audio-failure-text");
 const failureLinks = document.querySelectorAll("#failure-link");
 const form = document.querySelector(".form");
-const formButton = document.querySelector(".form__btn");
-const nameInput = document.querySelector(".form__input");
+const emailInput = document.querySelector("#emailAddress");
 const spinners = document.querySelectorAll(".spinner");
 const headerTitles = document.querySelectorAll(".heading__title");
 const signInButton = document.querySelector(".signIn-google");
@@ -20,6 +21,9 @@ const timerHours = document.querySelector("span[data-hours]");
 const timerMinutes = document.querySelector("span[data-minutes]");
 const timerSeconds = document.querySelector("span[data-seconds]");
 const retryForm = document.querySelector(".retry-check-form");
+
+// SOCKET
+// const socket = io();
 
 // ETC VARIABLES
 let timerId = 0;
@@ -63,11 +67,11 @@ const fetchSpreadSheetData = async (data) => {
     noEduguest.style.display = "none";
     signInContainer.style.display = "block";
   } else if (currentDate.getTime() < eqDate.getTime()) {
-    countdownTimer(eqDate);
+    countdownTimer(eqDate, data);
     timerContainer.style.display = "block";
     signInContainer.style.display = "none";
     noEduguest.style.display = "none";
-    timerId = setInterval(countdownTimer, 1000, eqDate);
+    timerId = setInterval(countdownTimer, 1000, eqDate, data);
   }
 };
 
@@ -76,19 +80,17 @@ form.addEventListener("submit", onJoinFormSubmit);
 
 async function onJoinFormSubmit(evt) {
   evt.preventDefault();
+
   const name = form.elements.name.value;
   const processName = name.split(" ").length > 1 ? name : "";
   const email = form.elements.email.value;
+  const joinButton = form.elements.joinButton;
+  const loginCredential = email ? email : getUserACId();
 
   let room = await getRandomNumber(1, roomNumber);
   const sheetName = "Main room " + room;
-  if (processName === "" || email === "") {
-    return;
-  }
-  formButton.disabled = true;
 
-  formButton.style.display = "none";
-  showSpinner();
+  joinButton.disabled = true;
 
   fetch("/isEduquestActive")
     .then((response) => {
@@ -102,7 +104,7 @@ async function onJoinFormSubmit(evt) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            data: email,
+            data: loginCredential,
           }),
         })
           .then((response) => {
@@ -121,7 +123,7 @@ async function onJoinFormSubmit(evt) {
               body: JSON.stringify({
                 sheetName: "Entered",
                 spreadsheetId: spreadSheetId,
-                data: [email, processName, googleName, room],
+                data: [loginCredential, processName, googleName, room],
               }),
             }).catch((error) => {
               console.log(error.message);
@@ -144,9 +146,6 @@ async function onJoinFormSubmit(evt) {
             console.log(error.message);
           })
           .finally(async () => {
-            hideSpinner();
-            formButton.style.display = "inline-flex";
-
             const urlId = generateIdForURL();
 
             const response = await fetch("/users");
@@ -165,9 +164,26 @@ async function onJoinFormSubmit(evt) {
                 }),
               });
             }
+            const socket = io();
+
+            socket.on("connect", () => {
+              socket.emit("join", urlId);
+            });
+
+            socket.on("cameraCheckPassed", () => {
+              techCameraContainer.style.display = "none";
+              techMicroContainer.style.display = "block";
+              anotherDeviceText.style.display = "none";
+            });
+
+            socket.on("microphoneCheckPassed", () => {
+              techMicroContainer.style.display = "none";
+              techAudioContainer.style.display = "flex";
+            });
+
             techCheckContainer.style.display = "block";
             signInContainer.style.display = "none";
-            formButton.disabled = false;
+            joinButton.disabled = false;
           });
       } else {
         window.location.href = data[1];
@@ -225,9 +241,7 @@ audioForm.addEventListener("submit", onAudioFormSubmit);
 async function onAudioFormSubmit(evt) {
   evt.preventDefault();
   const inputValue = evt.target.elements.audioCheck.value.trim().toLowerCase();
-  console.log(inputValue);
   if (inputValue !== "21" && inputValue !== "twenty one") {
-    console.log("bad");
     audioFailureTextEl.style.display = "block";
     return;
   }
@@ -281,11 +295,14 @@ async function paramsInterfaceLogic() {
   if (signInSuccess && !techCheck && !generatedId) {
     googleName = getParamValue("googleName");
     signInButton.style.display = "none";
+    if (getUserACId()) {
+      emailInput.removeAttribute("required");
+      emailInput.removeAttribute("pattern");
+      emailInput.parentNode.classList.add("hidden");
+    }
     await activeCampaignLogic();
   }
   if (techCheck) {
-    disableBackButton();
-
     signInButton.style.display = "none";
     signInContainer.style.display = "none";
     techCameraContainer.style.display = "none";
@@ -295,10 +312,6 @@ async function paramsInterfaceLogic() {
   if (generatedId) {
     techCheckContainer.style.display = "block";
   }
-}
-function disableBackButton() {
-  window.history.forward(); // Make sure they can't go back
-  setTimeout(disableBackButton, 1);
 }
 
 paramsInterfaceLogic();
@@ -331,6 +344,7 @@ async function activeCampaignLogic() {
       return;
     }
     const closestInternsList = data[0][7];
+    console.log(closestInternsList);
 
     const isInternExist = closestInternsList.find((intern) => {
       if (intern.id === internId) {
@@ -366,25 +380,24 @@ async function checkInternInFutureEQs(internId) {
   return futureEQ;
 }
 
-function retryInternCheck(closestInternsList, data) {
+function retryInternCheck(closestInternsList) {
   retryForm.style.display = "block";
 
   retryForm.addEventListener("submit", onRetryCheckFormSubmit);
 
   async function onRetryCheckFormSubmit(evt) {
     evt.preventDefault();
+    const currentUrl = window.location.href;
 
     const button = evt.target.elements.retryButton;
-    button.style.display = "none";
-
-    showSpinner();
+    button.disabled = "true";
 
     const internId = evt.target.elements.acId.value;
 
     const isInternExist = closestInternsList.find((intern) => {
       if (intern.id === internId) {
         retryForm.style.display = "none";
-        fetchSpreadSheetData(data[0]);
+        window.location.href = currentUrl.replace(/\/\d+/, `/${internId}`);
         return intern;
       }
     });
@@ -392,9 +405,10 @@ function retryInternCheck(closestInternsList, data) {
     if (!isInternExist) {
       const futureEQ = await checkInternInFutureEQs(internId);
       retryForm.style.display = "none";
-      futureEQ ? fetchSpreadSheetData(futureEQ) : showNoUpcomingEQ();
+      futureEQ
+        ? (window.location.href = currentUrl.replace(/\/\d+/, `/${internId}`))
+        : showNoUpcomingEQ();
     }
-    hideSpinner();
   }
 }
 
@@ -422,14 +436,14 @@ function convertMs(ms) {
   return { days, hours, minutes, seconds };
 }
 
-function countdownTimer(toDate) {
+function countdownTimer(toDate, eQData) {
   const now = Date.now();
 
   const delta = toDate - now;
 
   if (delta < 0) {
     clearInterval(timerId);
-    fetchSpreadSheetData();
+    fetchSpreadSheetData(eQData);
     return;
   }
   const { days, hours, minutes, seconds } = convertMs(delta);

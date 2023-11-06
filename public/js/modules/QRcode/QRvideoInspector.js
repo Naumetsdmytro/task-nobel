@@ -13,10 +13,19 @@ export class QRvideoInspector extends VideoInspector {
     if (result) {
       videoContainerEl.style.display = "none";
       resultContainerEl.style.display = "block";
+      this.sendCameraCheckSuccessSignal(this.getUserACId());
     } else {
       videoContainerEl.style.display = "none";
       cameraFailureEl.style.display = "block";
     }
+  }
+
+  async sendCameraCheckSuccessSignal(userId) {
+    fetch(`/cameraCheckSuccess/${userId}`, {
+      method: "POST",
+    }).catch((error) => {
+      console.error("Error sending camera check request:", error);
+    });
   }
 
   getUserACId() {
@@ -44,11 +53,6 @@ export class QRvideoInspector extends VideoInspector {
         isPossibleToUsePhone: false,
       }),
     });
-
-    fetch("/phoneCamera")
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.error("Error:", error.message));
   }
 
   inspect() {

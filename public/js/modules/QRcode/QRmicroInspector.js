@@ -13,12 +13,10 @@ export class QRmicroInspector extends MicroInspector {
     const imgPutinEl = document.querySelector(".putin");
 
     if (result === "Russia") {
-      console.log("bad");
       microBackdropEl.style.display = "none";
       microContainerEl.style.display = "none";
       imgPutinEl.style.display = "block";
     } else if (!result) {
-      console.log("bad 2");
       microContainerEl.style.display = "none";
       microFailureEl.style.display = "block";
       microBackdropEl.style.display = "none";
@@ -26,7 +24,16 @@ export class QRmicroInspector extends MicroInspector {
       microContainerEl.style.display = "none";
       resultContainerEl.style.display = "block";
       this.messageDisplayed = true;
+      this.sendMicroCheckSuccessSignal(this.getUserACId());
     }
+  }
+
+  async sendMicroCheckSuccessSignal(userId) {
+    fetch(`/microphoneCheckSuccess/${userId}`, {
+      method: "POST",
+    }).catch((error) => {
+      console.error("Error sending camera check request:", error);
+    });
   }
 
   getUserACId() {

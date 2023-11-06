@@ -9,7 +9,7 @@ const microphoneQREl = document.querySelector("#qr-microphone");
 const cameraQRTextEl = document.querySelector("#qr-camera-text");
 const microphoneQRTextEl = document.querySelector("#qr-microphone-text");
 const deviceInfoText = document.querySelector(".device-info-text");
-const signInButton = document.querySelector(".signIn-google");
+const signInButtonEl = document.querySelector(".signIn-google");
 
 function startInspections() {
   const isDesktop = performDeviceCheck();
@@ -19,7 +19,7 @@ function startInspections() {
 
   if (isDesktop && !cameraParam && !microParam) {
     if (!signInSuccess) {
-      signInButton.style.display = "inline-flex";
+      signInButtonEl.style.display = "inline-flex";
     }
     const videoInspector = new VideoInspector();
     const microInspector = new MicroInspector();

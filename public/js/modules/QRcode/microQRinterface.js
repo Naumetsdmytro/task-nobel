@@ -3,8 +3,24 @@ import { QRmicroInspector } from "./QRmicroInspector.js";
 const microCheckButtonEl = document.getElementById("micro-check-btn");
 const qrProcceedBtnEl = document.querySelector(".qr-button");
 const qrFailureMessage = document.querySelector(".qr-failure-message");
+const microBackdropEl = document.getElementById("microphone-check");
+const microContainerEl = document.querySelector(".qr-microphone-container");
+const microFailureEl = document.getElementById("microphone-failure-text");
 
 const microInspector = new QRmicroInspector();
+
+if (getParamValue("techCheck")) {
+  microContainerEl.style.display = "none";
+  microFailureEl.style.display = "block";
+  microBackdropEl.style.display = "none";
+} else {
+  microContainerEl.style.display = "block";
+}
+
+function getParamValue(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
 
 microCheckButtonEl.addEventListener("click", () => {
   microInspector.inspect();
@@ -15,13 +31,15 @@ qrProcceedBtnEl.addEventListener("click", async () => {
   const response = await fetch(`users/${userId}`);
   const user = await response.json();
 
-  const isFieldsAreTrue = Object.values(user).every((value) => value);
+  const isFieldsAreTrue = Object.entries(user).every(
+    ([key, value]) => key === "isPossibleToUsePhone" || value
+  );
 
   if (!isFieldsAreTrue) {
     qrFailureMessage.style.display = "block";
     return;
   }
-  window.location.href = user.meetingLink;
+  window.open(user.meetingLink, "_blank");
 });
 
 function getUserACId() {
