@@ -36,17 +36,22 @@
                             </div>
                         </div>
                         <div class="tech-microphone-container">
+                            <p class="browser-issues-text">SpeechRecognition API not supported in this browser, please,
+                                choose another one
+                                to pass microphone check!</p>
                             <p class="tech-instructions"><span>Great!</span> Your camera is working perfectly. Now,
                                 let's check your
                                 microphone.
-                                <span>Click the button, introduce yourself, and tell us where you're from.</span> We'll
+                                <span>Click the button and read aloud the displayed sentence.</span> We'll
                                 ensure your
                                 voice comes
                                 through clear during your lesson.
                             </p>
                             <div id="microphone-check" class="tech-microphone-backdrop">
                                 <div class="tech-spinner"></div>
-                                <p class="microphone-loading-text">Testing microphone...</p>
+                                <p class="microphone-check-text"><span>Read aloud:</span>The quick brown fox jumps over
+                                    the lazy dog</p>
+                                <p class="microphone-loading-text">Microphone Test in Progress...</p>
                             </div>
                             <button id="micro-check-btn" class="tech-check-button">Check my microphone</button>
                             <p id="qr-microphone-text" class="qr-oportunity">Use another device for checking microphone
@@ -225,9 +230,9 @@
                 <span id="spinner" class="spinner"></span>
                 <button type="button" id="googleSignInButton" class="signIn-google">Sign in with Google for
                     Meet</button>
-                <p class="device-info-text">For an optimal learning experience, we advise accessing our courses from a
+                <p class="device-info-text">For an optimal learning experience, we advise accessing our EduQuest from a
                     laptop or computer. These
-                    devices provide the necessary tools for our courses. Thank you for understanding! </p>
+                    devices provide the necessary tools for our EduQuest. Thank you for understanding! </p>
                 <div class="image">
                     <img src="./images/Illustration.png" alt="illustration" />
                 </div>

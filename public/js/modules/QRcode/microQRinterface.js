@@ -30,6 +30,7 @@ qrProcceedBtnEl.addEventListener("click", async () => {
   const userId = getUserACId();
   const response = await fetch(`users/${userId}`);
   const user = await response.json();
+  const meetingLink = user.meetingLink;
 
   const isFieldsAreTrue = Object.entries(user).every(
     ([key, value]) => key === "isPossibleToUsePhone" || value
@@ -39,7 +40,7 @@ qrProcceedBtnEl.addEventListener("click", async () => {
     qrFailureMessage.style.display = "block";
     return;
   }
-  window.open(user.meetingLink, "_blank");
+  window.location.href = meetingLink;
 });
 
 function getUserACId() {

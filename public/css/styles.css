@@ -701,11 +701,26 @@ canvas {
   justify-content: center;
 }
 
+.microphone-check-text {
+  cursor: default;
+  max-width: 800px;
+  font-size: 24px;
+  background-color: #f2f2f2;
+  border-radius: 30px;
+  padding: 8px 10px;
+}
+
+.microphone-check-text span {
+  font-size: 26px;
+  font-weight: 600;
+  display: block;
+}
+
 .microphone-loading-text {
   font-size: 28px;
-  color: #000;
+  color: #8ebf56;
   font-weight: 600;
-  margin-top: 20px;
+  margin-top: 40px;
 
   @media screen and (min-width: 520px) {
     font-size: 31px;
@@ -714,6 +729,13 @@ canvas {
     font-size: 34px;
     font-weight: 700;
   }
+}
+
+.browser-issues-text {
+  display: none;
+  color: #003b00;
+  font-size: 25px;
+  font-weight: 500;
 }
 
 .tech-spinner {

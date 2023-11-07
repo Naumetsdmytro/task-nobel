@@ -167,7 +167,7 @@ app.get("/getData", (req, res) => {
   const currentDate = new Date();
   if (cachedData) {
     const startDate = new Date(cachedData[0][0]);
-    if (new Date(startDate.getTime() + 60 * 60 * 1000) < currentDate) {
+    if (new Date(startDate.getTime() + 40 * 60 * 1000) < currentDate) {
       cachedData = null;
       dataArrayE.length = 0;
       dataArrayM.length = 0;
@@ -223,6 +223,7 @@ app.get("/:id", (req, res) => {
   const microParameterValue = req.query.microphone;
 
   if (cameraParameterValue) {
+    console.log("okay");
     res.render("cameraQrPage");
   } else if (microParameterValue) {
     res.render("microphoneQrPage");

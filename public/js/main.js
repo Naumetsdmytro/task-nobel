@@ -164,22 +164,8 @@ async function onJoinFormSubmit(evt) {
                 }),
               });
             }
-            const socket = io();
-
-            socket.on("connect", () => {
-              socket.emit("join", urlId);
-            });
-
-            socket.on("cameraCheckPassed", () => {
-              techCameraContainer.style.display = "none";
-              techMicroContainer.style.display = "block";
-              anotherDeviceText.style.display = "none";
-            });
-
-            socket.on("microphoneCheckPassed", () => {
-              techMicroContainer.style.display = "none";
-              techAudioContainer.style.display = "flex";
-            });
+            socketConnection(urlId);
+            setQRCodeElements();
 
             techCheckContainer.style.display = "block";
             signInContainer.style.display = "none";
@@ -189,6 +175,47 @@ async function onJoinFormSubmit(evt) {
         window.location.href = data[1];
       }
     });
+}
+
+function setQRCodeElements() {
+  const cameraQRcode = new QRCode(document.getElementById("cameraQRcode"), {
+    text: generateURL("camera"),
+    width: 230,
+    height: 230,
+  });
+
+  const microphoneQRcode = new QRCode(
+    document.getElementById("microphoneQRcode"),
+    {
+      text: generateURL("microphone"),
+      width: 230,
+      height: 230,
+    }
+  );
+}
+
+function generateURL(parameter) {
+  const currentURL = window.location.href;
+  return `${currentURL}&${parameter}=true`;
+}
+
+function socketConnection(urlId) {
+  const socket = io();
+
+  socket.on("connect", () => {
+    socket.emit("join", urlId);
+  });
+
+  socket.on("cameraCheckPassed", () => {
+    techCameraContainer.style.display = "none";
+    techMicroContainer.style.display = "block";
+    anotherDeviceText.style.display = "none";
+  });
+
+  socket.on("microphoneCheckPassed", () => {
+    techMicroContainer.style.display = "none";
+    techAudioContainer.style.display = "flex";
+  });
 }
 
 async function getRandomNumber(min, maxNumber) {
@@ -331,7 +358,7 @@ async function activeCampaignLogic() {
       link.href = data[0][6];
     });
     const eqDate = new Date(data[0][0]);
-    const processedEQDate = new Date(eqDate.getTime() + 90 * 60 * 1000);
+    const processedEQDate = new Date(eqDate.getTime() + 20 * 60 * 1000);
 
     if (processedEQDate.getTime() < currentDate.getTime()) {
       showNoUpcomingEQ();

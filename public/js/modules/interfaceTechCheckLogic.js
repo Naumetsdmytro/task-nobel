@@ -32,26 +32,6 @@ function startInspections() {
       videoInspector.inspect();
     });
 
-    const cameraQRcode = new QRCode(document.getElementById("cameraQRcode"), {
-      text: generateURL("camera"),
-      width: 230,
-      height: 230,
-    });
-
-    const microphoneQRcode = new QRCode(
-      document.getElementById("microphoneQRcode"),
-      {
-        text: generateURL("microphone"),
-        width: 230,
-        height: 230,
-      }
-    );
-
-    function generateURL(parameter) {
-      const currentURL = window.location.href;
-      return `${currentURL}&${parameter}=true`;
-    }
-
     cameraQREl.addEventListener("click", (evt) => {
       if (evt.target.id === "qr-camera") {
         cameraQREl.style.display = "none";
