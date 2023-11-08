@@ -682,6 +682,8 @@ canvas {
 
 .tech-microphone-backdrop {
   display: none;
+  width: 100%;
+  position: relative;
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -692,6 +694,26 @@ canvas {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.55);
   z-index: 5;
+}
+
+.microphone-check-modal {
+  position: absolute;
+  width: 100%;
+  min-height: 500px;
+  background-color: #fff;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 1px rgba(0, 0, 0, 0.14),
+    0px 2px 1px rgba(0, 0, 0, 0.2);
+  border-radius: 25px;
+  padding: 40px;
+
+  @media screen and (max-width: 1199.9px) {
+    max-width: 450px;
+  }
+
+  @media screen and (min-width: 1200px) {
+    width: 528px;
+    min-height: 581px;
+  }
 }
 
 .tech-microphone-container {
@@ -717,16 +739,16 @@ canvas {
 }
 
 .microphone-loading-text {
-  font-size: 28px;
+  font-size: 24px;
   color: #8ebf56;
   font-weight: 600;
   margin-top: 40px;
 
   @media screen and (min-width: 520px) {
-    font-size: 31px;
+    font-size: 26px;
   }
   @media screen and (min-width: 800px) {
-    font-size: 34px;
+    font-size: 28px;
     font-weight: 700;
   }
 }
@@ -739,22 +761,23 @@ canvas {
 }
 
 .tech-spinner {
-  border-top: 8px solid rgba(0, 96, 0, 0.7);
-  border-right: 8px solid rgba(0, 96, 0, 0.7);
-  border-bottom: 8px solid rgba(0, 96, 0, 0.7);
-  border-left: 8px solid #003b00;
+  border-top: 6px solid rgba(0, 96, 0, 0.7);
+  border-right: 6px solid rgba(0, 96, 0, 0.7);
+  border-bottom: 6px solid rgba(0, 96, 0, 0.7);
+  border-left: 6px solid #003b00;
   border-radius: 50%;
-  width: 75px;
-  height: 75px;
+  width: 50px;
+  height: 50px;
   animation: spin 1.5s linear infinite;
+  margin: 20px auto 0 auto;
 
   @media screen and (min-width: 520px) {
-    width: 85px;
-    height: 85px;
+    width: 60px;
+    height: 60px;
   }
   @media screen and (min-width: 800px) {
-    width: 95px;
-    height: 95px;
+    width: 70px;
+    height: 70px;
   }
 }
 
