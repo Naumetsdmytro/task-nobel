@@ -576,7 +576,7 @@ async function processQueueTechCheck() {
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
-  isProcessingQueueM = false;
+  isProcessingTechCheckQueue = false;
 }
 
 app.use((req, res) => {

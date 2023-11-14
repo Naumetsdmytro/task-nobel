@@ -134,3 +134,13 @@ dist
 package.json
 package-lock.json
 credentialss.json
+
+# Ignore app.yaml and .gcloudignore
+app.yaml
+.gcloudignore
+
+# Rest of your existing .gitignore rules
+# ...
+
+# Ignore credentialss.json (typo in filename)
+credentialss.json

@@ -71,7 +71,7 @@ export class MicroInspector {
         }),
       });
 
-      fetch("/setData", {
+      await fetch("/setData", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
