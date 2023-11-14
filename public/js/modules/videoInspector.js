@@ -34,13 +34,63 @@ export class VideoInspector {
     return null;
   }
 
-  async updateUserResult() {
-    const response = await fetch("/users");
-    const users = await response.json();
-    console.log(users);
+  async setUserToTechCheckList() {
+    try {
+      const userACId = this.getUserACId();
+      const userResponse = await fetch(`/users/${userACId}`);
+      const { name, googleName, mainRoomNumber, loginCredential } =
+        await userResponse.json();
 
+      const dataResponse = await fetch("/getData");
+      const { data } = await dataResponse.json();
+
+      const sheetName = "Main room " + mainRoomNumber;
+      const spreadSheetId = data[0][1];
+
+      await fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName: "Tech check",
+          spreadSheetId,
+          data: [name, googleName, "Failed", mainRoomNumber],
+        }),
+      });
+
+      fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName: "Entered",
+          spreadSheetId,
+          data: [loginCredential, name, googleName, mainRoomNumber],
+        }),
+      });
+
+      await fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName,
+          spreadSheetId,
+          data: [name, googleName],
+        }),
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  async updateUserResult() {
     const userACId = this.getUserACId();
-    const user = users.find((user) => user.id === userACId);
+    const response = await fetch(`/users/${userACId}`);
+    const user = await response.json();
 
     await fetch(`users/${userACId}`, {
       method: "PUT",
@@ -87,11 +137,23 @@ export class VideoInspector {
       }
     }, 2000);
 
-    const timeoutId = setTimeout(() => {
-      clearInterval(intervalId);
+    let reloadPage = false;
 
-      const currentURL = window.location.href;
-      window.location.href = `${currentURL}&techCheck=failed`;
+    const timeoutId = setTimeout(async () => {
+      try {
+        await this.setUserToTechCheckList();
+
+        reloadPage = true;
+
+        clearInterval(intervalId);
+      } catch (error) {
+        console.error("Error in setTimeout callback:", error);
+      } finally {
+        if (reloadPage) {
+          const currentURL = window.location.href;
+          window.location.href = `${currentURL}&techCheck=failed`;
+        }
+      }
     }, timeoutInSeconds * 1000);
   }
 }

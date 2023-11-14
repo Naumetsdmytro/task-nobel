@@ -1,7 +1,6 @@
-const { nanoid } = require("nanoid");
 const express = require("express");
 
-const { updateSchema } = require("../schemas");
+const { createSchema, updateSchema } = require("../schemas");
 const { HttpError } = require("../helpers");
 
 const router = express.Router();
@@ -33,16 +32,17 @@ router.get("/:id", (req, res) => {
 
 router.post("/", (req, res) => {
   try {
-    let { id, meetingLink } = req.body;
-    if (!id) {
-      throw HttpError(400, "Bad request");
+    const data = req.body;
+
+    const { error } = createSchema.validate(data);
+    if (error) {
+      throw HttpError(404, error.message);
     }
     const user = {
-      id,
+      ...data,
       camera: false,
       microphone: false,
       audio: false,
-      meetingLink,
       isPossibleToUsePhone: true,
     };
     users.push(user);
@@ -68,9 +68,9 @@ router.put("/:id", (req, res) => {
     if (index === -1) {
       throw HttpError(400, "Bad request");
     }
-    const { isPossibleToUsePhone } = users[index];
+    const user = users[index];
 
-    users[index] = { id, isPossibleToUsePhone, ...data };
+    users[index] = { ...user, ...data };
 
     res.status(200).json(users[index]);
   } catch (error) {

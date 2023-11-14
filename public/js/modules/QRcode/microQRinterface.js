@@ -6,6 +6,7 @@ const qrFailureMessage = document.querySelector(".qr-failure-message");
 const microBackdropEl = document.getElementById("microphone-check");
 const microContainerEl = document.querySelector(".qr-microphone-container");
 const microFailureEl = document.getElementById("microphone-failure-text");
+const failureLink = document.querySelector(".tech-failure-link");
 
 const microInspector = new QRmicroInspector();
 
@@ -13,6 +14,10 @@ if (getParamValue("techCheck")) {
   microContainerEl.style.display = "none";
   microFailureEl.style.display = "block";
   microBackdropEl.style.display = "none";
+
+  const response = await fetch("/getData");
+  const { data } = await response.json();
+  failureLink.href = data[0][6];
 } else {
   microContainerEl.style.display = "block";
 }

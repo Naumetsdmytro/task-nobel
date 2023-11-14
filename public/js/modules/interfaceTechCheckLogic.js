@@ -74,13 +74,7 @@ function isDesktopOrLaptop() {
 
 function performDeviceCheck() {
   const isDesktop = isDesktopOrLaptop();
-  if (isDesktop) {
-    console.log("User is using a desktop or laptop.");
-    return true;
-  } else {
-    console.log("User is using a mobile device.");
-    return false;
-  }
+  return isDesktop ? true : false;
 }
 
 window.addEventListener("load", startInspections);

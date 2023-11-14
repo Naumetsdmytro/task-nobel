@@ -5,12 +5,17 @@ const qrProcceedBtnEl = document.querySelector(".qr-button");
 const qrFailureMessage = document.querySelector(".qr-failure-message");
 const cameraFailureEl = document.getElementById("camera-failure-text");
 const videoContainerEl = document.querySelector(".tech-camera-container");
+const failureLink = document.querySelector(".tech-failure-link");
 
 const videoInspector = new QRvideoInspector();
 
 if (getParamValue("techCheck")) {
   videoContainerEl.style.display = "none";
   cameraFailureEl.style.display = "block";
+
+  const response = await fetch("/getData");
+  const { data } = await response.json();
+  failureLink.href = data[0][6];
 } else {
   videoContainerEl.style.display = "block";
 }

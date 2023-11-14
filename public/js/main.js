@@ -6,7 +6,8 @@ const techCheckContainer = document.querySelector(".tech-check");
 const techCameraContainer = document.querySelector(".tech-camera-container");
 const techMicroContainer = document.querySelector(".tech-microphone-container");
 const anotherDeviceText = document.querySelector("#qr-microphone-text");
-const failureEl = document.getElementById("failure-text");
+const failureText = document.getElementById("failure-text");
+const failureLink = document.querySelector(".tech-failure-link");
 const techAudioContainer = document.querySelector(".tech-audio-container");
 const audioForm = document.querySelector(".audio-form");
 const audioFailureTextEl = document.querySelector(".audio-failure-text");
@@ -66,6 +67,7 @@ const fetchSpreadSheetData = async (data) => {
     timerContainer.style.display = "none";
     noEduguest.style.display = "none";
     signInContainer.style.display = "block";
+    localStorage.setItem("failureLink", data[6]);
   } else if (currentDate.getTime() < eqDate.getTime()) {
     countdownTimer(eqDate, data);
     timerContainer.style.display = "block";
@@ -84,96 +86,53 @@ async function onJoinFormSubmit(evt) {
   const name = form.elements.name.value;
   const processName = name.split(" ").length > 1 ? name : "";
   const email = form.elements.email.value;
-  const joinButton = form.elements.joinButton;
   const loginCredential = email ? email : getUserACId();
 
-  let room = await getRandomNumber(1, roomNumber);
-  const sheetName = "Main room " + room;
+  const room = await getRandomNumber(roomNumber);
 
+  const joinButton = form.elements.joinButton;
   joinButton.disabled = true;
 
   fetch("/isEduquestActive")
     .then((response) => {
       return response.json();
     })
-    .then(({ data }) => {
+    .then(async ({ data }) => {
       if (data[0] === true && getParamValue("signInSuccess") === "true") {
-        fetch("/getEmailsFromEntered", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            data: loginCredential,
-          }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then(async ({ data }) => {
-            if (data) {
-              return;
-            }
-            form.reset();
-            fetch("/setData", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                sheetName: "Entered",
-                spreadsheetId: spreadSheetId,
-                data: [loginCredential, processName, googleName, room],
-              }),
-            }).catch((error) => {
-              console.log(error.message);
-            });
-            fetch("/setData", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                sheetName,
-                spreadsheetId: spreadSheetId,
-                data: [processName, googleName],
-              }),
-            }).catch((error) => {
-              console.log(error.message);
-            });
-          })
-          .catch((error) => {
-            console.log(error.message);
-          })
-          .finally(async () => {
-            const urlId = generateIdForURL();
+        const urlId = generateIdForURL();
 
-            const response = await fetch("/users");
-            const users = await response.json();
+        const response = await fetch("/users");
+        const users = await response.json();
 
-            const user = users.find((user) => user.id === urlId);
-            if (!user) {
-              await fetch("users", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  id: urlId,
-                  meetingLink: links[room - 1],
-                }),
-              });
-            }
-            socketConnection(urlId);
-            setQRCodeElements();
-
-            techCheckContainer.style.display = "block";
-            signInContainer.style.display = "none";
-            joinButton.disabled = false;
+        const user = users.find((user) => user.id === urlId);
+        if (!user) {
+          await fetch("users", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: urlId,
+              googleName,
+              name: processName,
+              loginCredential,
+              meetingLink: links[room - 1],
+              mainRoomNumber: room,
+            }),
           });
+        }
+        socketConnection(urlId);
+        setQRCodeElements();
+
+        techCheckContainer.style.display = "block";
+        signInContainer.style.display = "none";
+        joinButton.disabled = false;
       } else {
         window.location.href = data[1];
       }
+    })
+    .catch((error) => {
+      console.log(error.message);
     });
 }
 
@@ -218,7 +177,7 @@ function socketConnection(urlId) {
   });
 }
 
-async function getRandomNumber(min, maxNumber) {
+async function getRandomNumber(maxNumber) {
   const response = await fetch("/getNextRoomNumber", {
     method: "POST",
     headers: {
@@ -276,7 +235,10 @@ async function onAudioFormSubmit(evt) {
   const userACId = getUserACId();
 
   const response = await fetch(`/users/${userACId}`);
-  const user = await response.json();
+  const { loginCredential, googleName, name, mainRoomNumber, meetingLink } =
+    await response.json();
+
+  const sheetName = "Main room " + mainRoomNumber;
 
   await fetch(`users/${userACId}`, {
     method: "PUT",
@@ -287,10 +249,59 @@ async function onAudioFormSubmit(evt) {
       camera: true,
       microphone: true,
       audio: true,
-      meetingLink: user.meetingLink,
+      meetingLink: meetingLink,
     }),
   });
-  window.location.href = user.meetingLink;
+
+  fetch("/getEmailsFromEntered", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      data: loginCredential,
+    }),
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then(async ({ data }) => {
+      if (data) {
+        return;
+      }
+      form.reset();
+      fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName: "Entered",
+          spreadSheetId,
+          data: [loginCredential, name, googleName, mainRoomNumber],
+        }),
+      }).catch((error) => {
+        console.log(error.message);
+      });
+      fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName,
+          spreadSheetId,
+          data: [name, googleName, "Passed"],
+        }),
+      }).catch((error) => {
+        console.log(error.message);
+      });
+    })
+    .catch((error) => {
+      console.log(error.message);
+    });
+
+  window.location.href = meetingLink;
 }
 
 function getUserACId() {
@@ -314,27 +325,18 @@ function handleGoogleSignIn() {
   window.location.href = redirectUrl;
 }
 
+// URL PARAMS LOGIC
 async function paramsInterfaceLogic() {
   const techCheck = getParamValue("techCheck");
   const signInSuccess = getParamValue("signInSuccess");
   const generatedId = getParamValue("generatedId");
 
   if (signInSuccess && !techCheck && !generatedId) {
-    googleName = getParamValue("googleName");
-    signInButton.style.display = "none";
-    if (getUserACId()) {
-      emailInput.removeAttribute("required");
-      emailInput.removeAttribute("pattern");
-      emailInput.parentNode.classList.add("hidden");
-    }
+    handleSuccessSignIn();
     await activeCampaignLogic();
   }
   if (techCheck) {
-    signInButton.style.display = "none";
-    signInContainer.style.display = "none";
-    techCameraContainer.style.display = "none";
-    techCheckContainer.style.display = "block";
-    failureEl.style.display = "block";
+    handleTechCheckFailed();
   }
   if (generatedId) {
     techCheckContainer.style.display = "block";
@@ -342,6 +344,26 @@ async function paramsInterfaceLogic() {
 }
 
 paramsInterfaceLogic();
+
+function handleTechCheckFailed() {
+  failureLink.href = localStorage.getItem("failureLink");
+  signInButton.style.display = "none";
+  signInContainer.style.display = "none";
+  techCameraContainer.style.display = "none";
+  techCheckContainer.style.display = "block";
+  failureText.style.display = "block";
+}
+
+function handleSuccessSignIn() {
+  googleName = getParamValue("googleName");
+  signInButton.style.display = "none";
+
+  if (getUserACId()) {
+    emailInput.removeAttribute("required");
+    emailInput.removeAttribute("pattern");
+    emailInput.parentNode.classList.add("hidden");
+  }
+}
 
 // ACTIVE CAMPAIGN
 async function activeCampaignLogic() {
@@ -371,7 +393,6 @@ async function activeCampaignLogic() {
       return;
     }
     const closestInternsList = data[0][7];
-    console.log(closestInternsList);
 
     const isInternExist = closestInternsList.find((intern) => {
       if (intern.id === internId) {

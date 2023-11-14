@@ -46,6 +46,59 @@ export class MicroInspector {
     return null;
   }
 
+  async setUserToTechCheckList() {
+    try {
+      const userACId = this.getUserACId();
+      const userResponse = await fetch(`/users/${userACId}`);
+      const { name, googleName, mainRoomNumber, loginCredential } =
+        await userResponse.json();
+
+      const dataResponse = await fetch("/getData");
+      const { data } = await dataResponse.json();
+
+      const sheetName = "Main room " + mainRoomNumber;
+      const spreadSheetId = data[0][1];
+
+      await fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName: "Tech check",
+          spreadSheetId,
+          data: [name, googleName, "Failed", mainRoomNumber],
+        }),
+      });
+
+      fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName: "Entered",
+          spreadSheetId,
+          data: [loginCredential, name, googleName, mainRoomNumber],
+        }),
+      });
+
+      await fetch("/setData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sheetName,
+          spreadSheetId,
+          data: [name, googleName],
+        }),
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   async updateUserResult() {
     const userACId = this.getUserACId();
 
@@ -67,52 +120,64 @@ export class MicroInspector {
   }
 
   inspect() {
-    const timeoutInSeconds = 35;
+    const timeoutInSeconds = 25;
+    let recognition;
 
-    if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
-      const recognition = new (window.SpeechRecognition ||
-        window.webkitSpeechRecognition)();
-
-      const microphoneBackdropEl = document.getElementById("microphone-check");
-      microphoneBackdropEl.style.display = "flex";
-
-      recognition.lang = "en-US";
-      recognition.interimResults = true;
-      let recognitionTimeout;
-
-      recognition.addEventListener("result", (e) => {
-        if (!this.messageDisplayed) {
-          clearTimeout(recognitionTimeout);
-          const speechRecognitionResults = e.results;
-          const findMatchesResult = this.#findMatchesInSpeechResults(
-            speechRecognitionResults
-          );
-
-          recognitionTimeout = setTimeout(() => {
-            if (findMatchesResult === "Russia") {
-              clearTimeout(timeoutId);
-              this.handleMicroResult(false);
-              return;
-            }
-            if (findMatchesResult) {
-              clearTimeout(timeoutId);
-              this.updateUserResult();
-              this.handleMicroResult(true);
-            }
-          }, 7000);
-        }
-      });
-
-      recognition.start();
-
-      const timeoutId = setTimeout(() => {
-        const currentURL = window.location.href;
-        window.location.href = `${currentURL}&techCheck=failed`;
-      }, timeoutInSeconds * 1000);
+    if ("SpeechRecognition" in window) {
+      recognition = new window.SpeechRecognition();
+    } else if ("webkitSpeechRecognition" in window) {
+      recognition = new window.webkitSpeechRecognition();
     } else {
-      console.error("SpeechRecognition API not supported in this browser");
-      const browserIssuesText = document.querySelector(".browser-issues-text");
-      browserIssuesText.style.display = "block";
+      console.log("Speech recognition not supported in this browser");
     }
+
+    const microphoneBackdropEl = document.getElementById("microphone-check");
+    microphoneBackdropEl.style.display = "flex";
+
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    let recognitionTimeout;
+
+    recognition.addEventListener("result", (e) => {
+      if (!this.messageDisplayed) {
+        clearTimeout(recognitionTimeout);
+        const speechRecognitionResults = e.results;
+        const findMatchesResult = this.#findMatchesInSpeechResults(
+          speechRecognitionResults
+        );
+
+        recognitionTimeout = setTimeout(() => {
+          if (findMatchesResult === "Russia") {
+            clearTimeout(timeoutId);
+            this.handleMicroResult(false);
+            return;
+          }
+          if (findMatchesResult) {
+            clearTimeout(timeoutId);
+            this.updateUserResult();
+            this.handleMicroResult(true);
+          }
+        }, 7000);
+      }
+    });
+
+    recognition.start();
+
+    let reloadPage = false;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await this.setUserToTechCheckList();
+
+        reloadPage = true;
+      } catch (error) {
+        console.error("Error in setTimeout callback:", error);
+      } finally {
+        if (reloadPage) {
+          const currentURL = window.location.href;
+          window.location.href = `${currentURL}&techCheck=failed`;
+        }
+      }
+    }, timeoutInSeconds * 1000);
   }
 }

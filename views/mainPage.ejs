@@ -36,9 +36,6 @@
                             </div>
                         </div>
                         <div class="tech-microphone-container">
-                            <p class="browser-issues-text">SpeechRecognition API not supported in this browser, please,
-                                choose another one
-                                to pass microphone check!</p>
                             <p class="tech-instructions"><span>Great!</span> Your camera is working perfectly. Now,
                                 let's check your
                                 microphone.
@@ -71,8 +68,8 @@
                             you can
                             join the
                             meeting directly
-                            to perform the check again. Please click <a id="failure-link" href=""
-                                target=" _blank">here</a> to
+                            to perform the check again. Please click <a id="failure-link" target=" _blank"
+                                class="tech-failure-link">here</a> to
                             join the meeting and ensure your technical equipment is working properly.
                         </p>
                         <div class="tech-audio-container">
@@ -87,7 +84,9 @@
                             <form class="audio-form">
                                 <p class="audio-failure-text">Please, listen carefully and try again!</p>
                                 <div class="audio-container">
-                                    <audio id="audio-check" class="audio" src="./images/voice.mp3" controls></audio>
+                                    <audio id="audio-check" class="audio" controls>
+                                        <source src="./images/voice.mp3" type="audio/mp3">
+                                    </audio>
                                     <input type="text" class="audio-form-field" name="audioCheck"
                                         placeholder="Enter what you heard">
                                 </div>

@@ -7,6 +7,8 @@ require("dotenv").config();
 const http = require("http");
 const socketIO = require("socket.io");
 const users = require("./routes/users");
+const { setDataSchema } = require("./schemas");
+const { HttpError } = require("./helpers");
 
 const lock = new Mutex();
 const app = express();
@@ -40,9 +42,11 @@ io.on("connection", (socket) => {
 // .env Variables
 const clientEmailE = process.env.CLIENT_EMAIL_E;
 const privateKeyE = process.env.PRIVATE_KEY_E;
-const spreadsheetId = process.env.SPREADSHEET_ID;
 const clientEmailM = process.env.CLIENT_EMAIL_M;
 const privateKeyM = process.env.PRIVATE_KEY_M;
+const clientEmailTechCheck = process.env.CLIENT_EMAIL_TECH_CHECK;
+const privateKeyTechCheck = process.env.PRIVATE_KEY_TECH_CHECK;
+const spreadsheetId = process.env.SPREADSHEET_ID;
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const baselink = process.env.BASE_LINK;
@@ -60,18 +64,25 @@ const authM = new google.auth.JWT({
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
+const authTechCheck = new google.auth.JWT({
+  email: clientEmailTechCheck,
+  key: privateKeyTechCheck.replace(/\\n/g, "\n"),
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
+
 // Cached Data "/getData"
 let cachedData = null;
 const userStates = {};
 
 const dataArrayE = [];
-const dataArrayM = [];
 
 const requestQueueE = [];
 const requestQueueM = [];
+const requestQueueTechCheck = [];
 
 let isProcessingQueueE = false;
 let isProcessingQueueM = false;
+let isProcessingTechCheckQueue = false;
 
 // Endpoints for Vlad to quickly restart server
 app.get("/kapec", (req, res) => {
@@ -83,7 +94,7 @@ app.get("/babita", (req, res) => {
   dataArrayE.length = 0;
   requestQueueE.length = 0;
   requestQueueM.length = 0;
-  dataArrayM.length = 0;
+  requestQueueTechCheck.length = 0;
   res.redirect(baselink);
 });
 
@@ -170,9 +181,9 @@ app.get("/getData", (req, res) => {
     if (new Date(startDate.getTime() + 40 * 60 * 1000) < currentDate) {
       cachedData = null;
       dataArrayE.length = 0;
-      dataArrayM.length = 0;
       requestQueueE.length = 0;
       requestQueueM.length = 0;
+      requestQueueTechCheck.length = 0;
     }
   }
   if (cachedData) {
@@ -398,30 +409,38 @@ app.post("/getEmailsFromEntered", (req, res) => {
 });
 
 app.post("/setData", async (req, res) => {
-  const spreadsheetId = req.body.spreadsheetId;
-  const data = req.body.data;
-  const sheetName = req.body.sheetName;
+  try {
+    const data = req.body;
 
-  // Check if required parameters are provided
-  if (!spreadsheetId || !data) {
-    res.status(400).json({ error: "Missing spreadsheet ID or data" });
-    return;
-  }
+    const { error } = setDataSchema.validate(data);
+    if (error) {
+      throw HttpError(400, error.message);
+    }
 
-  // Acquire the lock to ensure exclusive access to the array
-  await lock.acquire();
+    // Acquire the lock to ensure exclusive access to the array
+    await lock.acquire();
 
-  if (data.length === 2) requestQueueM.push({ spreadsheetId, data, sheetName });
-  else requestQueueE.push({ spreadsheetId, data, sheetName });
+    if (data.sheetName === "Entered") {
+      requestQueueE.push(data);
+    } else if (data.sheetName === "Tech check") {
+      requestQueueTechCheck.push(data);
+    } else {
+      requestQueueM.push(data);
+    }
+    // Release the lock
+    lock.release();
 
-  // Release the lock
-  lock.release();
-
-  res.sendStatus(200);
-  if (data.length === 2) {
-    if (!isProcessingQueueM) processQueueM();
-  } else {
-    if (!isProcessingQueueE) processQueueE();
+    res.sendStatus(200);
+    if (data.sheetName === "Entered") {
+      if (!isProcessingQueueE) processQueueE();
+    } else if (data.sheetName === "Tech check") {
+      if (!isProcessingTechCheckQueue) processQueueTechCheck();
+    } else {
+      if (!isProcessingQueueM) processQueueM();
+    }
+  } catch (error) {
+    const { status = 500, message = "Server error" } = error;
+    res.status(status).json(message);
   }
 });
 
@@ -429,25 +448,26 @@ async function processQueueE() {
   isProcessingQueueE = true;
 
   while (requestQueueE.length > 0) {
-    const { spreadsheetId, data, sheetName } = requestQueueE[0]; // Retrieve the first request from the queue
+    const { spreadSheetId, data, sheetName } = requestQueueE[0]; // Retrieve the first request from the queue
     try {
       const sheets = google.sheets({ version: "v4", auth: authE });
+
       // Check if the spreadsheet object exists in the array
       let spreadsheetObj = dataArrayE.find(
-        (obj) => obj.spreadsheetId === spreadsheetId
+        (obj) => obj.spreadSheetId === spreadSheetId
       );
 
       // If the spreadsheet object doesn't exist, create a new one with count = 2
       if (!spreadsheetObj) {
         const response = await sheets.spreadsheets.values.get({
-          spreadsheetId,
+          spreadsheetId: spreadSheetId,
           range: `${sheetName}!A:B`,
           majorDimension: "ROWS",
         });
         const rows = response.data.values;
         const lastRow = rows.length + 1;
         spreadsheetObj = {
-          spreadsheetId,
+          spreadSheetId,
           sheets: [{ sheetName, count: lastRow }],
           data: [],
         };
@@ -470,7 +490,7 @@ async function processQueueE() {
 
       // Set the data in the last row
       await sheets.spreadsheets.values.update({
-        spreadsheetId,
+        spreadsheetId: spreadSheetId,
         range: `${sheetName}!A${lastRow}:D${lastRow}`,
         valueInputOption: "USER_ENTERED",
         resource: {
@@ -491,14 +511,14 @@ async function processQueueM() {
   isProcessingQueueM = true;
 
   while (requestQueueM.length > 0) {
-    const { spreadsheetId, data, sheetName } = requestQueueM[0]; // Retrieve the first request from the queue
+    const { spreadSheetId, data, sheetName } = requestQueueM[0]; // Retrieve the first request from the queue
     try {
       const sheets = google.sheets({ version: "v4", auth: authM });
 
       // Get the last row in the sheet
       const response = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: `${sheetName}!A:B`,
+        spreadsheetId: spreadSheetId,
+        range: `${sheetName}!A:C`,
         majorDimension: "ROWS",
       });
       const rows = response.data.values;
@@ -506,8 +526,8 @@ async function processQueueM() {
 
       // Set the data in the last row
       await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: `${sheetName}!A${lastRow}:B${lastRow}`,
+        spreadsheetId: spreadSheetId,
+        range: `${sheetName}!A${lastRow}:C${lastRow}`,
         valueInputOption: "USER_ENTERED",
         resource: {
           values: [data],
@@ -515,6 +535,42 @@ async function processQueueM() {
       });
 
       requestQueueM.shift();
+    } catch (error) {
+      console.error(error);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
+  isProcessingQueueM = false;
+}
+
+async function processQueueTechCheck() {
+  isProcessingTechCheckQueue = true;
+
+  while (requestQueueTechCheck.length > 0) {
+    const { spreadSheetId, data, sheetName } = requestQueueTechCheck[0]; // Retrieve the first request from the queue
+    try {
+      const sheets = google.sheets({ version: "v4", auth: authTechCheck });
+
+      // Get the last row in the sheet
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: spreadSheetId,
+        range: `${sheetName}!A:D`,
+        majorDimension: "ROWS",
+      });
+      const rows = response.data.values;
+      const lastRow = rows.length + 1;
+
+      // Set the data in the last row
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: spreadSheetId,
+        range: `${sheetName}!A${lastRow}:D${lastRow}`,
+        valueInputOption: "USER_ENTERED",
+        resource: {
+          values: [data],
+        },
+      });
+
+      requestQueueTechCheck.shift();
     } catch (error) {
       console.error(error);
       await new Promise((resolve) => setTimeout(resolve, 3000));
