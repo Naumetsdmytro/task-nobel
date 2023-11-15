@@ -175,7 +175,7 @@ export class MicroInspector {
       } finally {
         if (reloadPage) {
           const currentURL = window.location.href;
-          window.location.href = `${currentURL}&techCheck=failed`;
+          // window.location.href = `${currentURL}&techCheck=failed`;
         }
       }
     }, timeoutInSeconds * 1000);

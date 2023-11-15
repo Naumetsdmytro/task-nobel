@@ -46,7 +46,6 @@ function startInspections() {
 
     cameraQRTextEl.addEventListener("click", () => {
       cameraQREl.style.display = "flex";
-      microphoneQRTextEl.style.display = "none";
     });
 
     microphoneQRTextEl.addEventListener("click", () => {

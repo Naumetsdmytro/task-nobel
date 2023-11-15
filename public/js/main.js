@@ -139,16 +139,12 @@ async function onJoinFormSubmit(evt) {
 function setQRCodeElements() {
   const cameraQRcode = new QRCode(document.getElementById("cameraQRcode"), {
     text: generateURL("camera"),
-    width: 230,
-    height: 230,
   });
 
   const microphoneQRcode = new QRCode(
     document.getElementById("microphoneQRcode"),
     {
       text: generateURL("microphone"),
-      width: 230,
-      height: 230,
     }
   );
 }
@@ -166,6 +162,7 @@ function socketConnection(urlId) {
   });
 
   socket.on("cameraCheckPassed", () => {
+    console.log("OKAY");
     techCameraContainer.style.display = "none";
     techMicroContainer.style.display = "block";
     anotherDeviceText.style.display = "none";
