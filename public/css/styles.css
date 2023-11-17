@@ -557,12 +557,12 @@ canvas {
 
 .tech-check-title {
   text-align: center;
-  font-size: 32px;
+  font-size: 31px;
   color: black;
   margin-bottom: 30px;
 
   @media screen and (min-width: 520px) {
-    font-size: 35;
+    font-size: 34;
   }
   @media screen and (min-width: 800px) {
     font-size: 38px;
@@ -659,7 +659,7 @@ canvas {
   display: inline-flex;
   cursor: pointer;
   border: none;
-  padding: 15px 23px;
+  padding: 12px 19px;
   font-style: normal;
   font-weight: bold;
   font-size: x-large;
@@ -667,6 +667,10 @@ canvas {
   color: #f2f2f2;
   border-radius: 40px;
   transition: background 0.3s ease;
+
+  @media screen and (min-width: 800px) {
+    padding: 15px 23px;
+  }
 }
 
 .tech-check-button:hover {
@@ -726,16 +730,31 @@ canvas {
 .microphone-check-text {
   cursor: default;
   max-width: 800px;
-  font-size: 24px;
+  font-size: 29px;
   background-color: #f2f2f2;
   border-radius: 30px;
   padding: 8px 10px;
+
+  @media screen and (min-width: 520px) {
+    font-size: 21px;
+  }
+  @media screen and (min-width: 800px) {
+    font-size: 24px;
+  }
 }
 
 .microphone-check-text span {
-  font-size: 26px;
-  font-weight: 600;
+  font-size: 21px;
+  font-weight: 500;
   display: block;
+
+  @media screen and (min-width: 520px) {
+    font-size: 23px;
+    font-weight: 600;
+  }
+  @media screen and (min-width: 800px) {
+    font-size: 26px;
+  }
 }
 
 .microphone-loading-text {
@@ -869,7 +888,11 @@ canvas {
   margin-top: 30px;
   font-weight: 500;
   text-decoration: underline;
-  font-size: 24px;
+  font-size: 21px;
+
+  @media screen and (min-width: 800px) {
+    font-size: 24px;
+  }
 }
 
 .qr-oportunity:hover {
@@ -927,8 +950,8 @@ canvas {
   max-width: 650px;
   font-size: 19px;
   background-color: #f2f2f2;
-  border-radius: 30px;
-  padding: 4px 3px;
+  border-radius: 27px;
+  padding: 4px;
 
   @media screen and (min-width: 800px) {
     font-size: 22px;
@@ -939,6 +962,14 @@ canvas {
 /* Pages */
 .qr-title {
   margin-bottom: 30px;
+  font-size: 28px;
+
+  @media screen and (min-width: 520px) {
+    font-size: 30;
+  }
+  @media screen and (min-width: 800px) {
+    font-size: 33px;
+  }
 }
 
 .qr-result {
