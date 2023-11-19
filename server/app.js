@@ -398,7 +398,15 @@ app.post("/getEmailsFromEntered", (req, res) => {
 
   if (spreadsheetObj) {
     const enteredData = spreadsheetObj.data;
-    isEmailExist = enteredData.find((data) => data[0] === email);
+    isEmailExist = enteredData.find((data) => {
+      console.log(`first ${data[0]}`);
+      console.log(`first email ${email}`);
+      if (data[0] === email) {
+        console.log(`secong ${data[0]}`);
+        console.log(`second email ${email}`);
+        return data;
+      }
+    });
   }
 
   if (isEmailExist) {
