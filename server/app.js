@@ -396,16 +396,10 @@ app.post("/getEmailsFromEntered", (req, res) => {
   let isEmailExist = false;
   let spreadsheetObj = dataArrayE[0];
 
-  console.log(dataArrayE[0]);
-
   if (spreadsheetObj) {
     const enteredData = spreadsheetObj.data;
     isEmailExist = enteredData.find((data) => {
-      console.log(`first ${data[0]}`);
-      console.log(`first email ${email}`);
       if (data[0] === email) {
-        console.log(`secong ${data[0]}`);
-        console.log(`second email ${email}`);
         return data;
       }
     });
@@ -414,7 +408,7 @@ app.post("/getEmailsFromEntered", (req, res) => {
   if (isEmailExist) {
     res.json({ data: isEmailExist[3] });
   } else {
-    res.json({ data: 0 });
+    res.json({ data: false });
   }
 });
 

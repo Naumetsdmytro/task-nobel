@@ -296,9 +296,10 @@ async function onAudioFormSubmit(evt) {
     })
     .catch((error) => {
       console.log(error.message);
+    })
+    .finally(() => {
+      window.location.href = meetingLink;
     });
-
-  window.location.href = meetingLink;
 }
 
 function getUserACId() {
