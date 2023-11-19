@@ -398,7 +398,9 @@ app.post("/getEmailsFromEntered", (req, res) => {
 
   if (spreadsheetObj) {
     const enteredData = spreadsheetObj.data;
-    isEmailExist = enteredData.find((data) => data[0] === email);
+    isEmailExist = enteredData.find(
+      (data) => data[0].toLowerCase() === email.toLowerCase()
+    );
   }
 
   if (isEmailExist) {
