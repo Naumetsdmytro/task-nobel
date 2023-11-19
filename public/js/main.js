@@ -86,7 +86,7 @@ async function onJoinFormSubmit(evt) {
   const name = form.elements.name.value;
   const processName = name.split(" ").length > 1 ? name : "";
   const email = form.elements.email.value;
-  const loginCredential = email ? email.toLowerCase() : getUserACId();
+  const loginCredential = email ? email : getUserACId();
 
   const room = await getRandomNumber(roomNumber);
 
@@ -223,7 +223,7 @@ audioForm.addEventListener("submit", onAudioFormSubmit);
 
 async function onAudioFormSubmit(evt) {
   evt.preventDefault();
-  const inputValue = evt.target.elements.audioCheck.value.trim();
+  const inputValue = evt.target.elements.audioCheck.value.trim().toLowerCase();
   if (inputValue !== "21" && inputValue !== "twenty one") {
     audioFailureTextEl.style.display = "block";
     return;
