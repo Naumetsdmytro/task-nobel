@@ -223,7 +223,7 @@ audioForm.addEventListener("submit", onAudioFormSubmit);
 
 async function onAudioFormSubmit(evt) {
   evt.preventDefault();
-  const inputValue = evt.target.elements.audioCheck.value.trim().toLowerCase();
+  const inputValue = evt.target.elements.audioCheck.value.trim();
   if (inputValue !== "21" && inputValue !== "twenty one") {
     audioFailureTextEl.style.display = "block";
     return;
