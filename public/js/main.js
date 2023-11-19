@@ -86,7 +86,7 @@ async function onJoinFormSubmit(evt) {
   const name = form.elements.name.value;
   const processName = name.split(" ").length > 1 ? name : "";
   const email = form.elements.email.value;
-  const loginCredential = email ? email : getUserACId();
+  const loginCredential = email ? email.toLowerCase() : getUserACId();
 
   const room = await getRandomNumber(roomNumber);
 
