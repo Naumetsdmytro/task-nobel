@@ -107,7 +107,7 @@ export class VideoInspector {
   }
 
   inspect() {
-    const timeoutInSeconds = 35;
+    const timeoutInSeconds = 30;
 
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri("../../face-api-models/models"),
@@ -142,12 +142,11 @@ export class VideoInspector {
     const timeoutId = setTimeout(async () => {
       try {
         await this.setUserToTechCheckList();
+        this.handleCameraResult(false);
 
         reloadPage = true;
 
         clearInterval(intervalId);
-      } catch (error) {
-        console.error("Error in setTimeout callback:", error);
       } finally {
         if (reloadPage) {
           const currentURL = window.location.href;

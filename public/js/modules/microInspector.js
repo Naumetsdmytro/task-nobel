@@ -139,9 +139,9 @@ export class MicroInspector {
           if (findMatchesResult) {
             clearTimeout(timeoutId);
             this.updateUserResult();
-            this.handleMicroResult();
+            this.handleMicroResult(true);
           }
-        }, 7000);
+        }, 10000);
       }
     });
 
@@ -152,6 +152,7 @@ export class MicroInspector {
     const timeoutId = setTimeout(async () => {
       try {
         await this.setUserToTechCheckList();
+        this.handleMicroResult(false);
 
         reloadPage = true;
       } catch (error) {

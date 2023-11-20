@@ -98,14 +98,6 @@ app.get("/babita", (req, res) => {
   res.redirect(baselink);
 });
 
-app.get("/cameraCheckSuccess/:userId", (req, res) => {
-  const { userId } = req.params;
-  userStates[userId] = { cameraCheck: true };
-
-  io.to(userId).emit("cameraCheckPassed");
-  res.sendStatus(200);
-});
-
 // Get Date
 app.get("/currentDateTime", (req, res) => {
   const currentDate = new Date();
@@ -234,7 +226,6 @@ app.get("/:id", (req, res) => {
   const microParameterValue = req.query.microphone;
 
   if (cameraParameterValue) {
-    console.log("okay");
     res.render("cameraQrPage");
   } else if (microParameterValue) {
     res.render("microphoneQrPage");
@@ -299,16 +290,24 @@ async function getClosestDate(rows) {
   return closestDate;
 }
 
-app.post("/cameraCheckSuccess/:userId", (req, res) => {
+app.post("/cameraCheck/:userId", (req, res) => {
   const { userId } = req.params;
-  io.to(userId).emit("cameraCheckPassed");
+  const { checkResult } = req.body;
+
+  checkResult
+    ? io.to(userId).emit("cameraCheckPassed")
+    : io.to(userId).emit("cameraCheckFailed");
 
   res.sendStatus(200);
 });
 
-app.post("/microphoneCheckSuccess/:userId", (req, res) => {
+app.post("/microphoneCheck/:userId", (req, res) => {
   const { userId } = req.params;
-  io.to(userId).emit("microphoneCheckPassed");
+  const { checkResult } = req.body;
+
+  checkResult
+    ? io.to(userId).emit("microphoneCheckPassed")
+    : io.to(userId).emit("microphoneCheckFailed");
 
   res.sendStatus(200);
 });

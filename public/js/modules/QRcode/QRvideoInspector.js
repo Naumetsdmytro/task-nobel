@@ -8,21 +8,23 @@ export class QRvideoInspector extends VideoInspector {
   handleCameraResult(result) {
     const videoContainerEl = document.querySelector(".tech-camera-container");
     const resultContainerEl = document.querySelector(".qr-result");
-    const cameraFailureEl = document.getElementById("camera-failure-text");
 
     if (result) {
       videoContainerEl.style.display = "none";
       resultContainerEl.style.display = "block";
-      this.sendCameraCheckSuccessSignal(this.getUserACId());
+
+      this.sendCameraCheckSignal(this.getUserACId(), true);
     } else {
-      videoContainerEl.style.display = "none";
-      cameraFailureEl.style.display = "block";
+      this.sendCameraCheckSignal(this.getUserACId(), false);
     }
   }
 
-  async sendCameraCheckSuccessSignal(userId) {
-    fetch(`/cameraCheckSuccess/${userId}`, {
+  async sendCameraCheckSignal(userId, checkResult) {
+    fetch(`/cameraCheck/${userId}`, {
       method: "POST",
+      body: {
+        checkResult,
+      },
     }).catch((error) => {
       console.error("Error sending camera check request:", error);
     });

@@ -9,6 +9,7 @@ const microphoneQREl = document.querySelector("#qr-microphone");
 const cameraQRTextEl = document.querySelector("#qr-camera-text");
 const microphoneQRTextEl = document.querySelector("#qr-microphone-text");
 const deviceInfoText = document.querySelector(".device-info-text");
+const contentContainer = document.querySelector(".content");
 const signInButtonEl = document.querySelector(".signIn-google");
 
 function startInspections() {
@@ -52,6 +53,7 @@ function startInspections() {
       microphoneQREl.style.display = "flex";
     });
   } else {
+    contentContainer.style.display = "none";
     deviceInfoText.style.display = "block";
   }
 }

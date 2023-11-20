@@ -23,9 +23,6 @@ const timerMinutes = document.querySelector("span[data-minutes]");
 const timerSeconds = document.querySelector("span[data-seconds]");
 const retryForm = document.querySelector(".retry-check-form");
 
-// SOCKET
-// const socket = io();
-
 // ETC VARIABLES
 let timerId = 0;
 let spreadSheetId = "";
@@ -162,15 +159,24 @@ function socketConnection(urlId) {
   });
 
   socket.on("cameraCheckPassed", () => {
-    console.log("OKAY");
     techCameraContainer.style.display = "none";
     techMicroContainer.style.display = "block";
     anotherDeviceText.style.display = "none";
   });
 
+  socket.on("cameraCheckFailed", () => {
+    const currentURL = window.location.href;
+    window.location.href = `${currentURL}&techCheck=failed`;
+  });
+
   socket.on("microphoneCheckPassed", () => {
     techMicroContainer.style.display = "none";
     techAudioContainer.style.display = "flex";
+  });
+
+  socket.on("microphoneCheckFailed", () => {
+    const currentURL = window.location.href;
+    window.location.href = `${currentURL}&techCheck=failed`;
   });
 }
 
