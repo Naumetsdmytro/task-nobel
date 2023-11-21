@@ -23,9 +23,12 @@ export class QRmicroInspector extends MicroInspector {
   async sendMicroCheckSignal(userId, checkResult) {
     fetch(`/microphoneCheck/${userId}`, {
       method: "POST",
-      body: {
-        checkResult,
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        checkResult,
+      }),
     }).catch((error) => {
       console.error("Error sending camera check request:", error);
     });

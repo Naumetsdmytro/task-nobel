@@ -22,9 +22,12 @@ export class QRvideoInspector extends VideoInspector {
   async sendCameraCheckSignal(userId, checkResult) {
     fetch(`/cameraCheck/${userId}`, {
       method: "POST",
-      body: {
-        checkResult,
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        checkResult,
+      }),
     }).catch((error) => {
       console.error("Error sending camera check request:", error);
     });

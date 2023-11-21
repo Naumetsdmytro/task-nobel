@@ -15,15 +15,17 @@ export class MicroInspector {
     return false;
   }
 
-  handleMicroResult() {
+  handleMicroResult(result) {
     const microContainerEl = document.querySelector(
       ".tech-microphone-container"
     );
     const audioContainerEl = document.querySelector(".tech-audio-container");
 
-    audioContainerEl.style.display = "flex";
-    microContainerEl.style.display = "none";
-    this.messageDisplayed = true;
+    if (result) {
+      audioContainerEl.style.display = "flex";
+      microContainerEl.style.display = "none";
+      this.messageDisplayed = true;
+    }
   }
 
   getUserACId() {
@@ -141,7 +143,7 @@ export class MicroInspector {
             this.updateUserResult();
             this.handleMicroResult(true);
           }
-        }, 10000);
+        }, 9000);
       }
     });
 

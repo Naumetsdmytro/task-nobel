@@ -15,14 +15,16 @@ export class VideoInspector {
       });
   }
 
-  handleCameraResult() {
+  handleCameraResult(result) {
     const videoContainerEl = document.querySelector(".tech-camera-container");
     const microContainerEl = document.querySelector(
       ".tech-microphone-container"
     );
 
-    videoContainerEl.style.display = "none";
-    microContainerEl.style.display = "flex";
+    if (result) {
+      videoContainerEl.style.display = "none";
+      microContainerEl.style.display = "flex";
+    }
   }
 
   getUserACId() {
