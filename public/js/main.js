@@ -10,6 +10,7 @@ const failureText = document.getElementById("failure-text");
 const failureLink = document.querySelector(".tech-failure-link");
 const techAudioContainer = document.querySelector(".tech-audio-container");
 const audioForm = document.querySelector(".audio-form");
+const audioButton = document.querySelector("#audio-check-btn");
 const audioFailureTextEl = document.querySelector(".audio-failure-text");
 const failureLinks = document.querySelectorAll("#failure-link");
 const form = document.querySelector(".form");
@@ -234,6 +235,7 @@ async function onAudioFormSubmit(evt) {
     audioFailureTextEl.style.display = "block";
     return;
   }
+  audioButton.disabled = true;
 
   const userACId = getUserACId();
 
@@ -442,7 +444,7 @@ function retryInternCheck(closestInternsList) {
     const currentUrl = window.location.href;
 
     const button = evt.target.elements.retryButton;
-    button.disabled = "true";
+    button.disabled = true;
 
     const internId = evt.target.elements.acId.value;
 

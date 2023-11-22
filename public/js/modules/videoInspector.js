@@ -40,7 +40,7 @@ export class VideoInspector {
     try {
       const userACId = this.getUserACId();
       const userResponse = await fetch(`/users/${userACId}`);
-      const { name, googleName, mainRoomNumber, loginCredential } =
+      const { name, googleName, mainRoomNumber, loginCredential, meetingLink } =
         await userResponse.json();
 
       const dataResponse = await fetch("/getData");
@@ -61,29 +61,47 @@ export class VideoInspector {
         }),
       });
 
-      await fetch("/setData", {
+      fetch("/getEmailsFromEntered", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          sheetName: "Entered",
-          spreadSheetId,
-          data: [loginCredential, name, googleName, mainRoomNumber],
+          data: loginCredential,
         }),
-      });
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then(async ({ data }) => {
+          if (data) {
+            return;
+          }
 
-      await fetch("/setData", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sheetName,
-          spreadSheetId,
-          data: [name, googleName],
-        }),
-      });
+          await fetch("/setData", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sheetName: "Entered",
+              spreadSheetId,
+              data: [loginCredential, name, googleName, mainRoomNumber],
+            }),
+          });
+
+          await fetch("/setData", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sheetName,
+              spreadSheetId,
+              data: [name, googleName],
+            }),
+          });
+        });
     } catch (error) {
       console.log(error.message);
     }
