@@ -12,7 +12,6 @@ const techAudioContainer = document.querySelector(".tech-audio-container");
 const audioForm = document.querySelector(".audio-form");
 const audioButton = document.querySelector("#audio-check-btn");
 const audioFailureTextEl = document.querySelector(".audio-failure-text");
-const failureLinks = document.querySelectorAll("#failure-link");
 const form = document.querySelector(".form");
 const emailInput = document.querySelector("#emailAddress");
 const spinners = document.querySelectorAll(".spinner");
@@ -231,8 +230,9 @@ audioForm.addEventListener("submit", onAudioFormSubmit);
 async function onAudioFormSubmit(evt) {
   evt.preventDefault();
   const inputValue = evt.target.elements.audioCheck.value.trim().toLowerCase();
-  if (inputValue !== "21" && inputValue !== "twenty one") {
+  if (!isValidInputValue(inputValue)) {
     audioFailureTextEl.style.display = "block";
+    audioForm.reset();
     return;
   }
   audioButton.disabled = true;
@@ -306,8 +306,16 @@ async function onAudioFormSubmit(evt) {
       console.log(error.message);
     })
     .finally(() => {
+      audioForm.reset();
       window.location.href = meetingLink;
     });
+}
+
+function isValidInputValue(input) {
+  const validPattern = /^(21|twenty[ -]?one|2[ -]?1)$/;
+  //twenty-one, twenty one, 21, twentyone, 2 1
+
+  return validPattern.test(input);
 }
 
 function getUserACId() {
@@ -382,9 +390,6 @@ async function activeCampaignLogic() {
 
     const response = await fetch("/getData");
     const { data } = await response.json();
-    failureLinks.forEach((link) => {
-      link.href = data[0][6];
-    });
     const eqDate = new Date(data[0][0]);
     const processedEQDate = new Date(eqDate.getTime() + 20 * 60 * 1000);
 
@@ -441,6 +446,7 @@ function retryInternCheck(closestInternsList) {
 
   async function onRetryCheckFormSubmit(evt) {
     evt.preventDefault();
+    retryForm.reset();
     const currentUrl = window.location.href;
 
     const button = evt.target.elements.retryButton;

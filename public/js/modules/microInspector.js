@@ -20,11 +20,13 @@ export class MicroInspector {
       ".tech-microphone-container"
     );
     const audioContainerEl = document.querySelector(".tech-audio-container");
+    const issuesAudioLink = document.querySelector(".issues-audio-link");
 
     if (result) {
       audioContainerEl.style.display = "flex";
       microContainerEl.style.display = "none";
       this.messageDisplayed = true;
+      issuesAudioLink.href = localStorage.getItem("failureLink");
     }
   }
 
@@ -41,7 +43,7 @@ export class MicroInspector {
     try {
       const userACId = this.getUserACId();
       const userResponse = await fetch(`/users/${userACId}`);
-      const { name, googleName, mainRoomNumber, loginCredential, meetingLink } =
+      const { name, googleName, mainRoomNumber, loginCredential } =
         await userResponse.json();
 
       const dataResponse = await fetch("/getData");

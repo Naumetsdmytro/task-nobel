@@ -527,10 +527,15 @@ async function processQueueM() {
       const rows = response.data.values;
       const lastRow = rows.length + 1;
 
+      const range =
+        data.length === 2
+          ? `${sheetName}!A${lastRow}:B${lastRow}`
+          : `${sheetName}!A${lastRow}:C${lastRow}`;
+
       // Set the data in the last row
       await sheets.spreadsheets.values.update({
         spreadsheetId: spreadSheetId,
-        range: `${sheetName}!A${lastRow}:C${lastRow}`,
+        range,
         valueInputOption: "USER_ENTERED",
         resource: {
           values: [data],
