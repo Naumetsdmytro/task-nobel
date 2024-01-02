@@ -1,4 +1,5 @@
 import { QRvideoInspector } from "./QRvideoInspector.js";
+import { setContactToFailedList } from "../setContactToFailedList.js";
 
 const cameraCheckButtonEl = document.getElementById("camera-check-btn");
 const qrProcceedBtnEl = document.querySelector(".qr-button");
@@ -19,6 +20,8 @@ if (getParamValue("techCheck")) {
 } else {
   videoContainerEl.style.display = "block";
 }
+
+failureLink.addEventListener("click", setContactToFailedList);
 
 function getParamValue(param) {
   const urlParams = new URLSearchParams(window.location.search);

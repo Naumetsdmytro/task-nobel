@@ -38,10 +38,6 @@ export class QRmicroInspector extends MicroInspector {
     return super.getUserACId();
   }
 
-  async setUserToTechCheckList() {
-    super.setUserToTechCheckList();
-  }
-
   inspect() {
     super.inspect();
   }

@@ -1,3 +1,4 @@
+import { setContactToFailedList } from "./modules/setContactToFailedList.js";
 // ELEMENTS
 const timerContainer = document.querySelector(".countdown");
 const signInContainer = document.querySelector(".signIn");
@@ -22,6 +23,7 @@ const timerHours = document.querySelector("span[data-hours]");
 const timerMinutes = document.querySelector("span[data-minutes]");
 const timerSeconds = document.querySelector("span[data-seconds]");
 const retryForm = document.querySelector(".retry-check-form");
+const issuesAudioLink = document.querySelector(".issues-audio-link");
 
 // ETC VARIABLES
 let timerId = 0;
@@ -378,6 +380,10 @@ function handleSuccessSignIn() {
     emailInput.parentNode.classList.add("hidden");
   }
 }
+
+//SET CONTACT TO THE TECH CHECK LIST
+failureLink.addEventListener("click", setContactToFailedList);
+issuesAudioLink.addEventListener("click", setContactToFailedList);
 
 // ACTIVE CAMPAIGN
 async function activeCampaignLogic() {

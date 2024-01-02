@@ -37,10 +37,6 @@ export class QRvideoInspector extends VideoInspector {
     return super.getUserACId();
   }
 
-  async setUserToTechCheckList() {
-    super.setUserToTechCheckList();
-  }
-
   async updateUserResult() {
     const response = await fetch("/users");
     const users = await response.json();

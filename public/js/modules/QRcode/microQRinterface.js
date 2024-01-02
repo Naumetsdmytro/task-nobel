@@ -1,4 +1,5 @@
 import { QRmicroInspector } from "./QRmicroInspector.js";
+import { setContactToFailedList } from "../setContactToFailedList.js";
 
 const microCheckButtonEl = document.getElementById("micro-check-btn");
 const qrProcceedBtnEl = document.querySelector(".qr-button");
@@ -21,6 +22,8 @@ if (getParamValue("techCheck")) {
 } else {
   microContainerEl.style.display = "block";
 }
+
+failureLink.addEventListener("click", setContactToFailedList);
 
 function getParamValue(param) {
   const urlParams = new URLSearchParams(window.location.search);
