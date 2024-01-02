@@ -42,27 +42,6 @@ export class QRmicroInspector extends MicroInspector {
     super.setUserToTechCheckList();
   }
 
-  async updateUserResult() {
-    const userACId = this.getUserACId();
-
-    const response = await fetch(`/users/${userACId}`);
-    const user = await response.json();
-
-    await fetch(`users/${userACId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        camera: true,
-        microphone: true,
-        audio: false,
-        meetingLink: user.meetingLink,
-        isPossibleToUsePhone: false,
-      }),
-    });
-  }
-
   inspect() {
     super.inspect();
   }

@@ -40,7 +40,7 @@ export class VideoInspector {
     try {
       const userACId = this.getUserACId();
       const userResponse = await fetch(`/users/${userACId}`);
-      const { name, googleName, mainRoomNumber, loginCredential, meetingLink } =
+      const { name, googleName, mainRoomNumber, loginCredential } =
         await userResponse.json();
 
       const dataResponse = await fetch("/getData");
@@ -107,26 +107,9 @@ export class VideoInspector {
     }
   }
 
-  async updateUserResult() {
-    const userACId = this.getUserACId();
-    const response = await fetch(`/users/${userACId}`);
-    const user = await response.json();
-
-    await fetch(`users/${userACId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        camera: true,
-        microphone: false,
-        audio: false,
-        meetingLink: user.meetingLink,
-      }),
-    });
-  }
-
   inspect() {
+    const cameraCheckBtn = document.querySelector("#camera-check-btn");
+    cameraCheckBtn.disabled = true;
     const timeoutInSeconds = 30;
 
     Promise.all([
@@ -149,7 +132,6 @@ export class VideoInspector {
         .withFaceExpressions();
 
       if (detections.length > 0) {
-        await this.updateUserResult();
         clearInterval(intervalId);
         clearTimeout(timeoutId);
 

@@ -510,6 +510,7 @@ async function processQueueE() {
   }
   isProcessingQueueE = false;
 }
+
 async function processQueueM() {
   isProcessingQueueM = true;
 
@@ -528,9 +529,14 @@ async function processQueueM() {
       const lastRow = rows.length + 1;
 
       // Set the data in the last row
+      const range =
+        data.length === 3
+          ? `${sheetName}!A${lastRow}:C${lastRow}`
+          : `${sheetName}!A${lastRow}:B${lastRow}`;
+
       await sheets.spreadsheets.values.update({
         spreadsheetId: spreadSheetId,
-        range: `${sheetName}!A${lastRow}:C${lastRow}`,
+        range,
         valueInputOption: "USER_ENTERED",
         resource: {
           values: [data],
