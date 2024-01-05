@@ -19,6 +19,10 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.get(/^\/(\d+)$/, (req, res) => {
+  res.redirect("/");
+});
+
 // Middleware to parse request bodies
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -119,7 +123,7 @@ app.get("/oauth2callback", async (req, res) => {
 app.get("/isEduquestActive", (req, res) => {
   const currentDate = new Date();
   const startDate = new Date(cachedData[0]);
-  const processStartDate = new Date(startDate.getTime() + 90 * 60 * 1000);
+  const processStartDate = new Date(startDate.getTime() + 40 * 60 * 1000);
 
   if (
     currentDate.getTime() >= startDate.getTime() &&
@@ -136,7 +140,7 @@ app.get("/getData", (req, res) => {
   const currentDate = new Date();
   if (cachedData) {
     const startDate = new Date(cachedData[0]);
-    if (new Date(startDate.getTime() + 120 * 60 * 1000) < currentDate) {
+    if (new Date(startDate.getTime() + 90 * 60 * 1000) < currentDate) {
       cachedData = null;
       dataArrayE.length = 0;
       dataArrayM.length = 0;
@@ -158,7 +162,7 @@ app.get("/getData", (req, res) => {
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
     },
-    (err, response) => {
+    async (err, response) => {
       if (err) {
         console.error("Error:", err);
         res.status(500).send("An error occurred");
@@ -168,17 +172,7 @@ app.get("/getData", (req, res) => {
       const rows = response.data.values;
       if (rows && rows.length) {
         rows.shift();
-        const closestDateArray = rows.reduce((closest, current) => {
-          const currentRowDate = new Date(current[0]);
-          const closestRowDate = new Date(closest[0]);
-
-          const currentDiff = Math.abs(currentRowDate - currentDate);
-          const closestDiff = Math.abs(closestRowDate - currentDate);
-
-          return currentDiff < closestDiff && currentRowDate >= currentDate
-            ? current
-            : closest;
-        });
+        const closestDateArray = await getClosestDate(rows);
 
         cachedData = closestDateArray;
         res.json({ data: closestDateArray });
@@ -189,6 +183,24 @@ app.get("/getData", (req, res) => {
   );
 });
 app.use(express.json());
+
+async function getClosestDate(rows) {
+  const currentDate = new Date();
+
+  const closestDate = rows.reduce((closest, current) => {
+    const currentRowDate = new Date(current[0]);
+    const closestRowDate = new Date(closest[0]);
+
+    const currentDiff = Math.abs(currentRowDate - currentDate);
+    const closestDiff = Math.abs(closestRowDate - currentDate);
+
+    return currentDiff < closestDiff &&
+      currentRowDate.getTime() + 90 * 60 * 1000 >= currentDate
+      ? current
+      : closest;
+  });
+  return closestDate;
+}
 
 app.post("/getEmailsFromEntered", (req, res) => {
   const email = req.body.data;
