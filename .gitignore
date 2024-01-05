@@ -130,7 +130,4 @@ dist
 .pnp.*
 
 
-
-package.json
-package-lock.json
 credentialss.json
